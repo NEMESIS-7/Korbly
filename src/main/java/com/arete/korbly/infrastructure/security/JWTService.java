@@ -1,0 +1,149 @@
+package com.arete.korbly.infrastructure.security;
+
+import io.github.cdimascio.dotenv.Dotenv;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.enums.UserRole;
+import com.arete.korbly.modules.shared.persistence.AppUserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.util.*;
+import java.util.function.Function;
+
+@Service
+public class JWTService {
+
+    Dotenv dotenv = Dotenv.configure().load();
+    private String secretKey = dotenv.get("JWT_SECRET");
+
+    private final AppUserRepository appUserRepository;
+
+    public JWTService(AppUserRepository appUserRepository) {
+        this.appUserRepository = appUserRepository;
+    }
+
+    public String generateRefreshToken(String username, UserRole role, UUID userID) {
+        long refreshTokenExp = 15552000000L;
+        return generateToken(username, refreshTokenExp, role, userID);
+    }
+
+    public String generateAccessToken(String username, UserRole role, UUID userId) {
+        long accessTokenExpirationTime = 15552000000L;
+        return generateToken(username, accessTokenExpirationTime, role, userId);
+    }
+
+    public String generateToken(String username, long expirationTime, UserRole role, UUID userId) {
+        Optional<AppUser> appUser = appUserRepository.findById(userId);
+        Map<String, Object> claims = new HashMap<>();
+        if (appUser.isPresent()){
+            claims.put("userEmail", appUser.get().getPrimaryContactEmail());
+            claims.put("userId",appUser.get().getUserId());
+            claims.put("userType", appUser.get().getUserType());
+        }
+
+        return Jwts.builder()
+                .claims()
+                .add(claims)
+                .subject(username)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .and()
+                .signWith(getKey())
+                .compact();
+    }
+
+    public UUID extractAdminId(String token) {
+        Claims claims = extractAllClaim(token);
+        if (claims.containsKey("adminId")) {
+            return UUID.fromString(claims.get("adminId", String.class));
+        }
+        return null;
+    }
+
+    public UUID extractCustomerId(String token) {
+        Claims claims = extractAllClaim(token);
+        if (claims.containsKey("customerId")) {
+            return claims.get("customerId", UUID.class);
+        }
+        return null;
+    }
+
+
+    private SecretKey getKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaim(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaim(String token) {
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public String extractRole(String token) {
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
+
+    public UUID getCustomerId(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        String userToken = authHeader.substring(7);
+        return extractCustomerId(userToken);
+    }
+
+    public UUID getAdminId(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        String userToken = authHeader.substring(7);
+        return extractAdminId(userToken);
+    }
+
+    public String extractUserEmail(String token){
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("userEmail", String.class);
+    }
+
+    public String extractUserRole(String token){
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
+}
