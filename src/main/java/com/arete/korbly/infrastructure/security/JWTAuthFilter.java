@@ -44,8 +44,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             if (userEmail != null && authentication == null){
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(userEmail);
-                final String userRole = jwtService.extractUserRole(token);
-                List<SimpleGrantedAuthority> userAuthorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userRole));
+                final String userType = jwtService.extractUserType(token);
+                List<SimpleGrantedAuthority> userAuthorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userType));
 
 
                 if (jwtService.validateToken(token, userDetails)){

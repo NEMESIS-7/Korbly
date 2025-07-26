@@ -13,10 +13,10 @@ public class KorblyPlatformApplication {
 		Dotenv dotenv = Dotenv
 				.configure()
 				.load();
+
 		System.setProperty("SPRING_DATASOURCE_URL", dotenv.get("SPRING_DATASOURCE_URL"));
 		System.setProperty("SPRING_DATASOURCE_USERNAME", dotenv.get("SPRING_DATASOURCE_USERNAME"));
 		System.setProperty("SPRING_DATASOURCE_PASSWORD", dotenv.get("SPRING_DATASOURCE_PASSWORD"));
-
 
 		System.setProperty("CLOUDINARY_NAME", dotenv.get("CLOUDINARY_NAME"));
 		System.setProperty("CLOUDINARY_API_SECRET", dotenv.get("CLOUDINARY_API_SECRET"));
@@ -27,6 +27,8 @@ public class KorblyPlatformApplication {
 		System.setProperty("SPRING_MAIL_PASSWORD", dotenv.get("SPRING_MAIL_PASSWORD"));
 
 		System.setProperty("REDIS_URL", dotenv.get("REDIS_URL"));
+
+		System.setProperty("SENTRY_AUTH_TOKEN", dotenv.get("SENTRY_AUTH_TOKEN"));
 
 		SpringApplication.run(KorblyPlatformApplication.class, args);
 	}

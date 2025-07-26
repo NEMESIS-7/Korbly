@@ -13,7 +13,7 @@ public class OpenAPIConfig {
                 .info(new Info()
                         .title("Korbly Platform")
                         .version("1.0")
-                        .description("API Documentation for Korbly Platform Server Server")
+                        .description("API Documentation for Korbly Platform Server")
                 );
     }
 }

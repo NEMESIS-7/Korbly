@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.shared.exceptions;
 
 
+import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,7 @@ import java.time.Instant;
 public class APIExceptionHandler {
 
     @ExceptionHandler(InvestorNotFound.class)
-    public ResponseEntity<?> handleInvestorAccountNotFound(HttpServletRequest request){
+    public ResponseEntity<?> handleInvestorAccountNotFound(InvestorNotFound e, HttpServletRequest request){
         APIException apiException = new APIException(
                 "Invalid",
                 HttpStatus.NOT_FOUND.value(),
@@ -26,11 +27,14 @@ public class APIExceptionHandler {
                 ),
                 request.getRequestId()
         );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(InvalidEmail.class)
-    public ResponseEntity<?> handleInvalidEmail(HttpServletRequest request){
+    public ResponseEntity<?> handleInvalidEmail(InvalidEmail e, HttpServletRequest request){
         APIException apiException = new APIException(
                 "Invalid",
                 HttpStatus.BAD_REQUEST.value(),
@@ -42,6 +46,9 @@ public class APIExceptionHandler {
                 ),
                 request.getRequestId()
         );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
     }
 }

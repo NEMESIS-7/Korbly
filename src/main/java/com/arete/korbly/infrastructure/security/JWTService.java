@@ -1,14 +1,13 @@
 package com.arete.korbly.infrastructure.security;
 
+import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.enums.UserRole;
+import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
-import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.enums.UserRole;
-import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -58,22 +57,6 @@ public class JWTService {
                 .compact();
     }
 
-    public UUID extractAdminId(String token) {
-        Claims claims = extractAllClaim(token);
-        if (claims.containsKey("adminId")) {
-            return UUID.fromString(claims.get("adminId", String.class));
-        }
-        return null;
-    }
-
-    public UUID extractCustomerId(String token) {
-        Claims claims = extractAllClaim(token);
-        if (claims.containsKey("customerId")) {
-            return claims.get("customerId", UUID.class);
-        }
-        return null;
-    }
-
 
     private SecretKey getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -96,18 +79,18 @@ public class JWTService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
-
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
+
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-
     public String extractRole(String token) {
         return Jwts.parser()
                 .verifyWith(getKey())
@@ -117,17 +100,6 @@ public class JWTService {
                 .get("role", String.class);
     }
 
-    public UUID getCustomerId(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        String userToken = authHeader.substring(7);
-        return extractCustomerId(userToken);
-    }
-
-    public UUID getAdminId(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        String userToken = authHeader.substring(7);
-        return extractAdminId(userToken);
-    }
 
     public String extractUserEmail(String token){
         return Jwts.parser()
@@ -138,12 +110,20 @@ public class JWTService {
                 .get("userEmail", String.class);
     }
 
-    public String extractUserRole(String token){
+    public String extractUserType(String token){
         return Jwts.parser()
                 .verifyWith(getKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
                 .get("role", String.class);
+    }
+
+    public UUID extractUserId(String token) {
+        Claims claims = extractAllClaim(token);
+        if (claims.containsKey("userId")) {
+            return UUID.fromString(claims.get("userId", String.class));
+        }
+        return null;
     }
 }

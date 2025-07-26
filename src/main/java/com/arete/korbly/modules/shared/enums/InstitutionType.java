@@ -1,5 +1,8 @@
 package com.arete.korbly.modules.shared.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum InstitutionType {
     ASSET_MANAGEMENT("Asset Management"),
     DEVELOPMENT_FINANCE_INSTITUTION("Development Finance Institution"),
