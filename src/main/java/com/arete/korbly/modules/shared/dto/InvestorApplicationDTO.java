@@ -16,6 +16,7 @@ public record InvestorApplicationDTO(
         String phoneNumber,
         LocalDate yearEstablished,
         BigDecimal assetsUnderManagement,
+        String institutionalAddress,
         BigDecimal minimumInvestment,
         RiskAppetite riskAppetite,
         Set<InvestmentFocus> investmentFocusSet

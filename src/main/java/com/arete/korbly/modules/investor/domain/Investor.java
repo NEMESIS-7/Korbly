@@ -5,16 +5,17 @@ import com.arete.korbly.modules.shared.enums.InstitutionType;
 import com.arete.korbly.modules.shared.enums.InvestmentFocus;
 import com.arete.korbly.modules.shared.enums.RiskAppetite;
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Builder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Builder
 public class Investor {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +24,7 @@ public class Investor {
     @Enumerated(EnumType.STRING)
     private InstitutionType institutionType;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Enumerated(EnumType.STRING)
     private Set<InvestmentFocus> investmentFocus;
 
@@ -41,11 +43,9 @@ public class Investor {
     @Column(nullable = false, unique = true)
     private String institutionalAddress;
 
-    @CreationTimestamp
-    private Timestamp createdOn;
+    @Column(nullable = false, unique = true)
+    private String institutionName;
 
-    @UpdateTimestamp
-    private Timestamp updatedOn;
 
     @Column(nullable = false)
     private BigDecimal assetsUnderManagement;
@@ -69,7 +69,23 @@ public class Investor {
     @JoinColumn(name = "userId")
     private AppUser appUser;
 
-    public Investor(UUID investorId, InstitutionType institutionType, Set<InvestmentFocus> investmentFocus, RiskAppetite riskAppetite, String phoneNumber, String registrationNumber, LocalDate dateEstablished, String institutionalAddress, Timestamp createdOn, Timestamp updatedOn, BigDecimal assetsUnderManagement, BigDecimal minimumInvestment, String certificateOfIncorporationURL, String auditedFinancialStatementsURL, String investmentPolicyStatementURL, String boardResolutionURL, AppUser appUser) {
+    public Investor(UUID investorId,
+                    InstitutionType institutionType,
+                    Set<InvestmentFocus> investmentFocus,
+                    RiskAppetite riskAppetite,
+                    String phoneNumber,
+                    String registrationNumber,
+                    LocalDate dateEstablished,
+                    String institutionalAddress,
+                    String institutionName,
+                    BigDecimal assetsUnderManagement,
+                    BigDecimal minimumInvestment,
+                    String certificateOfIncorporationURL,
+                    String auditedFinancialStatementsURL,
+                    String investmentPolicyStatementURL,
+                    String boardResolutionURL,
+                    AppUser appUser
+    ) {
         this.investorId = investorId;
         this.institutionType = institutionType;
         this.investmentFocus = investmentFocus;
@@ -78,8 +94,7 @@ public class Investor {
         this.registrationNumber = registrationNumber;
         this.dateEstablished = dateEstablished;
         this.institutionalAddress = institutionalAddress;
-        this.createdOn = createdOn;
-        this.updatedOn = updatedOn;
+        this.institutionName = institutionName;
         this.assetsUnderManagement = assetsUnderManagement;
         this.minimumInvestment = minimumInvestment;
         this.certificateOfIncorporationURL = certificateOfIncorporationURL;
@@ -88,7 +103,6 @@ public class Investor {
         this.boardResolutionURL = boardResolutionURL;
         this.appUser = appUser;
     }
-
 
     public Investor() {
     }
@@ -157,22 +171,6 @@ public class Investor {
         this.institutionalAddress = institutionalAddress;
     }
 
-    public Timestamp getCreatedOn() {
-        return createdOn;
-    }
-
-    public void setCreatedOn(Timestamp createdOn) {
-        this.createdOn = createdOn;
-    }
-
-    public Timestamp getUpdatedOn() {
-        return updatedOn;
-    }
-
-    public void setUpdatedOn(Timestamp updatedOn) {
-        this.updatedOn = updatedOn;
-    }
-
     public BigDecimal getAssetsUnderManagement() {
         return assetsUnderManagement;
     }
@@ -227,5 +225,13 @@ public class Investor {
 
     public void setAppUser(AppUser appUser) {
         this.appUser = appUser;
+    }
+
+    public String getInstitutionName() {
+        return institutionName;
+    }
+
+    public void setInstitutionName(String institutionName) {
+        this.institutionName = institutionName;
     }
 }

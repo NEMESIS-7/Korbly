@@ -31,7 +31,7 @@ public class AppUser  {
 
     private Timestamp updatedOn;
 
-    private Timestamp lasLogin;
+    private Timestamp lastLogin;
 
 
     @PrePersist
