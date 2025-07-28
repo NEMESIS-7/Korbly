@@ -2,6 +2,7 @@ package com.arete.korbly.infrastructure.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,7 +38,12 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             return;
         }
         try{
-            final String token = authHeader.substring(7);
+            String token = getTokenFromCookie(request.getCookies());
+            System.out.println("token from cookie: " + token);
+            if (token == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             final String userEmail = jwtService.extractUserEmail(token);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -64,5 +70,15 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
+    }
+    private String getTokenFromCookie(Cookie[] cookies) {
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("JWTAccess_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

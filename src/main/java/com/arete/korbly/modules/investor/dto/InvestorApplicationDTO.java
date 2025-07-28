@@ -1,4 +1,4 @@
-package com.arete.korbly.modules.shared.dto;
+package com.arete.korbly.modules.investor.dto;
 
 import com.arete.korbly.modules.shared.enums.InstitutionType;
 import com.arete.korbly.modules.shared.enums.InvestmentFocus;

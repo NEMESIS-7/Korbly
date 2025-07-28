@@ -1,7 +1,7 @@
 package com.arete.korbly.infrastructure.security;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.enums.UserRole;
+import com.arete.korbly.modules.shared.enums.UserType;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
@@ -27,17 +27,17 @@ public class JWTService {
         this.appUserRepository = appUserRepository;
     }
 
-    public String generateRefreshToken(String username, UserRole role, UUID userID) {
+    public String generateRefreshToken(String username, UserType role, UUID userID) {
         long refreshTokenExp = 15552000000L;
         return generateToken(username, refreshTokenExp, role, userID);
     }
 
-    public String generateAccessToken(String username, UserRole role, UUID userId) {
+    public String generateAccessToken(String username, UserType role, UUID userId) {
         long accessTokenExpirationTime = 15552000000L;
         return generateToken(username, accessTokenExpirationTime, role, userId);
     }
 
-    public String generateToken(String username, long expirationTime, UserRole role, UUID userId) {
+    public String generateToken(String username, long expirationTime, UserType role, UUID userId) {
         Optional<AppUser> appUser = appUserRepository.findById(userId);
         Map<String, Object> claims = new HashMap<>();
         if (appUser.isPresent()){

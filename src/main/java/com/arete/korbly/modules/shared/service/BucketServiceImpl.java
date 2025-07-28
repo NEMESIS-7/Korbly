@@ -1,4 +1,4 @@
-package com.arete.korbly.modules.shared.application;
+package com.arete.korbly.modules.shared.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;

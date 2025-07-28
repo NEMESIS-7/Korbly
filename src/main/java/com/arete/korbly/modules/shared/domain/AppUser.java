@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.shared.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import com.arete.korbly.modules.shared.enums.UserType;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@Builder
 public class AppUser  {
 
     @Id
@@ -33,6 +35,18 @@ public class AppUser  {
 
     private Timestamp lastLogin;
 
+    public AppUser(UUID userId, String primaryContactEmail, UserType userType, Boolean isVerified, Timestamp createdOn, Timestamp updatedOn, Timestamp lastLogin) {
+        this.userId = userId;
+        this.primaryContactEmail = primaryContactEmail;
+        this.userType = userType;
+        this.isVerified = isVerified;
+        this.createdOn = createdOn;
+        this.updatedOn = updatedOn;
+        this.lastLogin = lastLogin;
+    }
+
+    public AppUser() {
+    }
 
     @PrePersist
     protected void onCreate(){

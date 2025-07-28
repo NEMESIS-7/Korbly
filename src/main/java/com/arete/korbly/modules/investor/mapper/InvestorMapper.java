@@ -1,7 +1,7 @@
-package com.arete.korbly.modules.shared.Mappers;
+package com.arete.korbly.modules.investor.mapper;
 
 import com.arete.korbly.modules.investor.domain.Investor;
-import com.arete.korbly.modules.shared.dto.InvestorDTO;
+import com.arete.korbly.modules.investor.dto.InvestorDTO;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
