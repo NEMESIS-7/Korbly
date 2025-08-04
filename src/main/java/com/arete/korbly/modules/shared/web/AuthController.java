@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -90,4 +91,15 @@ public class AuthController {
         return new ResponseEntity<>(authService.uploadFile(testUpload), HttpStatus.OK);
     }
 
+    private boolean validateEmailString(String email){
+        String regexPattern = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
+                + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
+        return patternMatches(email,regexPattern);
+    }
+
+    private boolean patternMatches(String email, String regexPattern){
+        return Pattern.compile(regexPattern)
+                .matcher(email)
+                .matches();
+    }
 }

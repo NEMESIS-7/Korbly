@@ -1,5 +1,6 @@
 package com.arete.korbly.modules.sme.domain;
 
+import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.shared.enums.SMERegion;
 import jakarta.persistence.*;
@@ -69,11 +70,14 @@ public class SME {
     @Column(nullable = false, unique = true)
     private String taxClearanceCert;
 
+    @Enumerated(EnumType.STRING)
+    private DeleteYn deleteYn;
+
 
     public SME() {
     }
 
-    public SME(UUID smeId, String companyName, SMEIndustry industry, String registrationNumber, String phoneNumber, SMERegion region, LocalDate dateEstablished, String websiteURL, String businessDescription, BigDecimal annualRevenue, Integer numberOfEmployees, BigDecimal monthlyRevenue, BigDecimal requestedAmount, String purposeOfFunding, String certOfIncorporation, String latestFinancialStatements, String businessPlan, String taxClearanceCert) {
+    public SME(UUID smeId, String companyName, SMEIndustry industry, String registrationNumber, String phoneNumber, SMERegion region, LocalDate dateEstablished, String websiteURL, String businessDescription, BigDecimal annualRevenue, Integer numberOfEmployees, BigDecimal monthlyRevenue, BigDecimal requestedAmount, String purposeOfFunding, String certOfIncorporation, String latestFinancialStatements, String businessPlan, String taxClearanceCert, DeleteYn deleteYn) {
         this.smeId = smeId;
         this.companyName = companyName;
         this.industry = industry;
@@ -92,6 +96,15 @@ public class SME {
         this.latestFinancialStatements = latestFinancialStatements;
         this.businessPlan = businessPlan;
         this.taxClearanceCert = taxClearanceCert;
+        this.deleteYn = deleteYn;
+    }
+
+    public DeleteYn getDeleteYn() {
+        return deleteYn;
+    }
+
+    public void setDeleteYn(DeleteYn deleteYn) {
+        this.deleteYn = deleteYn;
     }
 
     public UUID getSmeId() {
@@ -237,4 +250,15 @@ public class SME {
     public void setTaxClearanceCert(String taxClearanceCert) {
         this.taxClearanceCert = taxClearanceCert;
     }
+
+    @PrePersist
+    protected void onCreate(){
+        this.deleteYn = DeleteYn.N;
+    }
+
+    @PreUpdate
+    protected void onUpdate(){
+        this.deleteYn = DeleteYn.N;
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.investor.domain;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.shared.enums.InstitutionType;
 import com.arete.korbly.modules.shared.enums.InvestmentFocus;
 import com.arete.korbly.modules.shared.enums.RiskAppetite;
@@ -69,23 +70,11 @@ public class Investor {
     @JoinColumn(name = "userId")
     private AppUser appUser;
 
-    public Investor(UUID investorId,
-                    InstitutionType institutionType,
-                    Set<InvestmentFocus> investmentFocus,
-                    RiskAppetite riskAppetite,
-                    String phoneNumber,
-                    String registrationNumber,
-                    LocalDate dateEstablished,
-                    String institutionalAddress,
-                    String institutionName,
-                    BigDecimal assetsUnderManagement,
-                    BigDecimal minimumInvestment,
-                    String certificateOfIncorporationURL,
-                    String auditedFinancialStatementsURL,
-                    String investmentPolicyStatementURL,
-                    String boardResolutionURL,
-                    AppUser appUser
-    ) {
+    @Enumerated(EnumType.STRING)
+    private DeleteYn deleteYn;
+
+
+    public Investor(UUID investorId, InstitutionType institutionType, Set<InvestmentFocus> investmentFocus, RiskAppetite riskAppetite, String phoneNumber, String registrationNumber, LocalDate dateEstablished, String institutionalAddress, String institutionName, BigDecimal assetsUnderManagement, BigDecimal minimumInvestment, String certificateOfIncorporationURL, String auditedFinancialStatementsURL, String investmentPolicyStatementURL, String boardResolutionURL, AppUser appUser, DeleteYn deleteYn) {
         this.investorId = investorId;
         this.institutionType = institutionType;
         this.investmentFocus = investmentFocus;
@@ -102,9 +91,30 @@ public class Investor {
         this.investmentPolicyStatementURL = investmentPolicyStatementURL;
         this.boardResolutionURL = boardResolutionURL;
         this.appUser = appUser;
+        this.deleteYn = deleteYn;
     }
 
+    @PrePersist
+    protected void onCreate(){
+        this.deleteYn = DeleteYn.N;
+    }
+
+    @PreUpdate
+    protected void onUpdate(){
+        this.deleteYn = DeleteYn.N;
+    }
+
+
+
     public Investor() {
+    }
+
+    public DeleteYn getDeleteYn() {
+        return deleteYn;
+    }
+
+    public void setDeleteYn(DeleteYn deleteYn) {
+        this.deleteYn = deleteYn;
     }
 
     public UUID getInvestorId() {

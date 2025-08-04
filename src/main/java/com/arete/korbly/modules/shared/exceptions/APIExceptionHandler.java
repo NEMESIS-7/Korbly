@@ -70,4 +70,42 @@ public class APIExceptionHandler {
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(SMENotFound.class)
+    public ResponseEntity<?> handleSMENotFound(SMENotFound e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Not Found",
+                HttpStatus.NOT_FOUND.value(),
+                new APIException.APIError(
+                        HttpStatus.NOT_FOUND,
+                        "SME not found, check the ID entered",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidFinancials.class)
+    public ResponseEntity<?> handleInvalidFinancials(InvalidFinancials e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Invalid financial data",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        "User passed invalid financial data.",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
 }
