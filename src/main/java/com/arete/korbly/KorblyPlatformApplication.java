@@ -38,7 +38,7 @@ public class KorblyPlatformApplication {
 		return args -> {
 			SME sme = smeRepository.findById(UUID.fromString("ba10348b-92b3-46c8-aac1-4bf22f7bd6e4")).orElseThrow();
 
-			FinancialsDTO dto = new FinancialsDTO(
+			FinancialsDTO enums = new FinancialsDTO(
 					new BigDecimal("1000000"),  // totalAssets
 					new BigDecimal("500000"),   // totalLiabilities
 					new BigDecimal("300000"),   // currentAssets
@@ -54,7 +54,7 @@ public class KorblyPlatformApplication {
 					new BigDecimal("3")         // companySize
 			);
 
-			CreditMemoDTO memo = creditEvaluationService.evaluateAndSave(UUID.fromString("ba10348b-92b3-46c8-aac1-4bf22f7bd6e4"), dto);
+			CreditMemoDTO memo = creditEvaluationService.evaluateAndSave(UUID.fromString("ba10348b-92b3-46c8-aac1-4bf22f7bd6e4"), enums);
 			System.out.println("Memo saved with Altman: " + memo.altmanScore() + " and ESG: " + memo.esgRiskRating());
 		};*/
 }

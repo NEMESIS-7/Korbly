@@ -15,7 +15,7 @@ import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Function;
 
-@Service
+@ServiceI
 public class JWTService {
 
     Dotenv dotenv = Dotenv.configure().load();
