@@ -7,13 +7,15 @@ import com.arete.korbly.modules.syndication.domain.Tranche;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class SyndicationMapper {
 
-    public static Deal toEntity(DealDTO dto, SME sme, AppUser createdBy) {
+    public Deal toDealEntity(DealDTO dto, SME sme, AppUser createdBy) {
         Deal deal = new Deal();
         deal.setDealTitle(dto.dealTitle());
         deal.setDealDescription(dto.dealDescription());
@@ -26,7 +28,7 @@ public class SyndicationMapper {
 
         if (dto.tranches() != null) {
             List<Tranche> trancheEntities = dto.tranches().stream()
-                    .map(trancheDTO -> toEntity(trancheDTO, deal, createdBy))
+                    .map(trancheDTO -> toTrancheEntity(trancheDTO, deal, createdBy))
                     .collect(Collectors.toList());
             deal.setTranches(trancheEntities);
         }
@@ -34,7 +36,7 @@ public class SyndicationMapper {
         return deal;
     }
 
-    public static Tranche toEntity(TrancheDTO dto, Deal deal, AppUser createdBy) {
+    public Tranche toTrancheEntity(TrancheDTO dto, Deal deal, AppUser createdBy) {
         Tranche tranche = new Tranche();
         tranche.setTrancheType(dto.trancheType());
         tranche.setAmount(dto.amount());
@@ -45,4 +47,34 @@ public class SyndicationMapper {
         tranche.setCreatedBy(createdBy);
         return tranche;
     }
+
+    public DealDTO toDealDTO(Deal deal) {
+        return new DealDTO(
+                deal.getDealTitle(),
+                deal.getDealDescription(),
+                deal.getDealStatus(),
+                deal.getCurrency(),
+                deal.getSmeInvolved().getSmeId(),
+                deal.getTranches() != null
+                        ? deal.getTranches().stream()
+                        .map(this::toTrancheDTO)
+                        .collect(Collectors.toList())
+                        : null,
+                deal.getTotalAmount(),
+                deal.getDealSector()
+        );
+    }
+
+    public TrancheDTO toTrancheDTO(Tranche tranche) {
+        return new TrancheDTO(
+                tranche.getTrancheType(),
+                tranche.getAmount(),
+                tranche.getInterestRate(),
+                tranche.getTenorMonths(),
+                tranche.isAnchor(),
+                tranche.getCreatedAt(),
+                tranche.getUpdatedAt()
+        );
+    }
+
 }

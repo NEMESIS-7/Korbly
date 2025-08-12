@@ -8,14 +8,17 @@ import com.arete.korbly.modules.syndication.enums.DealCurrency;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Builder
 public class Deal {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -65,6 +68,7 @@ public class Deal {
         this.createdAt = Timestamp.from(Instant.now());
         this.updatedAt = Timestamp.from(Instant.now());
         this.deleteYn = DeleteYn.N;
+        this.tranches = new ArrayList<>();
     }
 
     @PreUpdate
@@ -115,41 +119,53 @@ public class Deal {
         return dealTitle;
     }
 
-    public void setDealTitle(String dealTitle) {
-        this.dealTitle = dealTitle;
-    }
 
     public String getDealDescription() {
         return dealDescription;
+    }
+
+
+    public SMEIndustry getDealSector() {
+        return dealSector;
+    }
+
+    public void setDealTitle(String dealTitle) {
+        this.dealTitle = dealTitle;
     }
 
     public void setDealDescription(String dealDescription) {
         this.dealDescription = dealDescription;
     }
 
-    public SMEIndustry getDealSector() {
-        return dealSector;
-    }
-
     public void setDealSector(SMEIndustry dealSector) {
         this.dealSector = dealSector;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
     }
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
 
+    public void setCurrency(DealCurrency currency) {
+        this.currency = currency;
+    }
+
+    public void setSmeInvolved(SME smeInvolved) {
+        this.smeInvolved = smeInvolved;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
     public DealCurrency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(DealCurrency currency) {
-        this.currency = currency;
-    }
+
 
     public DealStatus getDealStatus() {
         return dealStatus;
@@ -163,17 +179,11 @@ public class Deal {
         return smeInvolved;
     }
 
-    public void setSmeInvolved(SME smeInvolved) {
-        this.smeInvolved = smeInvolved;
-    }
 
     public Timestamp getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
 
     public Timestamp getUpdatedAt() {
         return updatedAt;

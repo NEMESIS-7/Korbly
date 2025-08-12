@@ -1,6 +1,9 @@
 package com.arete.korbly.modules.shared.exceptions;
 
 
+import com.arete.korbly.modules.syndication.exceptions.DealAmountExceeded;
+import com.arete.korbly.modules.syndication.exceptions.DealStatusUpdateException;
+import com.arete.korbly.modules.syndication.exceptions.InvalidDealUpdate;
 import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -41,6 +44,64 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         "Email is invalid",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidDealUpdate.class)
+    public ResponseEntity<?> handleInvalidDealUpdate(InvalidDealUpdate e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Invalid",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        "Deals can only be updated when open or in draft",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+
+    @ExceptionHandler(DealAmountExceeded.class)
+    public ResponseEntity<?> handleDealAmountExceeded(DealAmountExceeded e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Invalid",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        "Tranche amount exceed the amount of the deal left to be funded.",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DealStatusUpdateException.class)
+    public ResponseEntity<?> handleDealStatusUpdateException(DealStatusUpdateException e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Invalid",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        e.getMessage(),
                         Timestamp.from(Instant.now()),
                         request.getRequestURI()
                 ),

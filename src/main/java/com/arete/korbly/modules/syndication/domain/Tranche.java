@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.syndication.domain;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.syndication.enums.TrancheType;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -39,21 +40,15 @@ public class Tranche {
 
     private Timestamp updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    private DeleteYn deleteYn;
+
     @ManyToOne
     @JoinColumn(name = "createdById")
     private AppUser createdBy;
 
 
-    public Tranche(UUID trancheId,
-                   TrancheType trancheType,
-                   BigDecimal amount,
-                   BigDecimal interestRate,
-                   Integer tenorMonths,
-                   Boolean isAnchor,
-                   Deal deal,
-                   Timestamp createdAt,
-                   Timestamp updatedAt,
-                   AppUser createdBy) {
+    public Tranche(UUID trancheId, TrancheType trancheType, BigDecimal amount, BigDecimal interestRate, Integer tenorMonths, Boolean isAnchor, Deal deal, Timestamp createdAt, Timestamp updatedAt, DeleteYn deleteYn, AppUser createdBy) {
         this.trancheId = trancheId;
         this.trancheType = trancheType;
         this.amount = amount;
@@ -63,6 +58,7 @@ public class Tranche {
         this.deal = deal;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.deleteYn = deleteYn;
         this.createdBy = createdBy;
     }
 
@@ -147,6 +143,18 @@ public class Tranche {
 
     public void setCreatedBy(AppUser createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public Boolean getAnchor() {
+        return isAnchor;
+    }
+
+    public DeleteYn getDeleteYn() {
+        return deleteYn;
+    }
+
+    public void setDeleteYn(DeleteYn deleteYn) {
+        this.deleteYn = deleteYn;
     }
 
     @PrePersist

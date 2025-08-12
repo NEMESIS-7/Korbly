@@ -1,7 +1,6 @@
 package com.arete.korbly.modules.syndication.dto;
 
 import com.arete.korbly.modules.shared.enums.SMEIndustry;
-import com.arete.korbly.modules.sme.domain.SME;
 import com.arete.korbly.modules.syndication.enums.DealCurrency;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
 import jakarta.validation.constraints.DecimalMin;
@@ -11,6 +10,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 public record DealDTO(
         @NotBlank
@@ -23,7 +23,7 @@ public record DealDTO(
 
         DealCurrency currency,
 
-        SME smeInvolved,
+        UUID smeInvolved,
 
         List<TrancheDTO> tranches,
 

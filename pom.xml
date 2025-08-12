@@ -184,32 +184,27 @@
 					<source>21</source>
 					<target>21</target>
 					<annotationProcessorPaths>
-						<!-- Lombok must come first -->
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 							<version>1.18.30</version>
 						</path>
-						<!-- MapStruct processor -->
 						<path>
 							<groupId>org.mapstruct</groupId>
 							<artifactId>mapstruct-processor</artifactId>
 							<version>1.6.3</version>
 						</path>
-						<!-- QueryDSL processor with required dependencies -->
 						<path>
 							<groupId>com.querydsl</groupId>
 							<artifactId>querydsl-apt</artifactId>
 							<version>${querydsl.version}</version>
 							<classifier>jakarta</classifier>
 						</path>
-						<!-- Add Jakarta Persistence API for QueryDSL -->
 						<path>
 							<groupId>jakarta.persistence</groupId>
 							<artifactId>jakarta.persistence-api</artifactId>
 							<version>3.1.0</version>
 						</path>
-						<!-- Add QueryDSL core for the processor -->
 						<path>
 							<groupId>com.querydsl</groupId>
 							<artifactId>querydsl-core</artifactId>
@@ -219,13 +214,11 @@
 					<compilerArgs>
 						<compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg>
 						<compilerArg>-Amapstruct.unmappedTargetPolicy=IGNORE</compilerArg>
-						<!-- QueryDSL processor configuration -->
 						<compilerArg>-Aquerydsl.entityAccessors=true</compilerArg>
 					</compilerArgs>
 				</configuration>
 			</plugin>
 
-			<!-- REMOVE the apt-maven-plugin completely - it conflicts with the compiler plugin approach -->
 
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
