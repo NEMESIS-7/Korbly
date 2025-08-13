@@ -78,6 +78,9 @@ public class SyndicationController {
         return new ResponseEntity<>(syndicationService.createTranche(deal,trancheDTO,appUserId), HttpStatus.OK);
     }
 
-
-
+    @DeleteMapping("/tranche/delete/{trancheId}")
+    public ResponseEntity<?> deleteTranche(@PathVariable UUID trancheId){
+        syndicationService.deleteTranche(trancheId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

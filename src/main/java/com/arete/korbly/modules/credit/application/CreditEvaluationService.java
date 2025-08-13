@@ -5,7 +5,6 @@ import com.arete.korbly.modules.credit.domain.CreditMemo;
 import com.arete.korbly.modules.credit.dto.CreditMemoDTO;
 import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.credit.mapper.CreditDTOMapper;
-import com.arete.korbly.modules.credit.mapper.CreditDTOMapperImpl;
 import com.arete.korbly.modules.credit.persistence.CreditMemoRepository;
 import com.arete.korbly.modules.credit.util.AltmanScoreCalculator;
 import com.arete.korbly.modules.credit.util.ESGRiskMapper;
@@ -31,18 +30,19 @@ public class CreditEvaluationService {
     private final ESGRiskMapper eSGRiskMapper;
     private final CreditDTOMapper creditDTOMapper;
     private final SMERepository smeRepository;
-    private final CreditDTOMapperImpl creditDTOMapperImpl;
 
     public CreditEvaluationService(AltmanScoreCalculator altmanZScoreCalculator,
                                    OhlsonScoreCalculator ohlsonScoreCalculator,
-                                   CreditMemoRepository creditMemoRepository, ESGRiskMapper eSGRiskMapper, CreditDTOMapper creditDTOMapper, SMERepository smeRepository, CreditDTOMapperImpl creditDTOMapperImpl) {
+                                   CreditMemoRepository creditMemoRepository,
+                                   ESGRiskMapper eSGRiskMapper,
+                                   CreditDTOMapper creditDTOMapper,
+                                   SMERepository smeRepository) {
         this.altmanZScoreCalculator = altmanZScoreCalculator;
         this.ohlsonScoreCalculator = ohlsonScoreCalculator;
         this.creditMemoRepository = creditMemoRepository;
         this.eSGRiskMapper = eSGRiskMapper;
         this.creditDTOMapper = creditDTOMapper;
         this.smeRepository = smeRepository;
-        this.creditDTOMapperImpl = creditDTOMapperImpl;
     }
 
     public CreditMemoDTO evaluateAndSave(UUID smeId, FinancialsDTO financialsDTO) {
