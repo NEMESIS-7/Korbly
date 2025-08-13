@@ -13,7 +13,7 @@ import java.io.IOException;
 @Service
 public class S3FileUploadService {
     private final AmazonS3 amazonS3;
-    private final String bucketName = "korbly";
+    private final String bucketName = System.getenv("BUCKET_NAME");
 
     public S3FileUploadService(AmazonS3 amazonS3) {
         this.amazonS3 = amazonS3;
