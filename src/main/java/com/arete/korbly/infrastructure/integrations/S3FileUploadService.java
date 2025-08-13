@@ -5,7 +5,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.arete.korbly.modules.shared.enums.UploadFileResponse;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +12,6 @@ import java.io.IOException;
 
 @Service
 public class S3FileUploadService {
-    Dotenv dotenv = Dotenv.configure().load();
     private final AmazonS3 amazonS3;
     private final String bucketName = "korbly";
 
