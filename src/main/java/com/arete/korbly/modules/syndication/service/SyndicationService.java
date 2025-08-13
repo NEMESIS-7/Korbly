@@ -114,6 +114,7 @@ public class SyndicationService implements ISyndicationService{
 
         BigDecimal partOfDealFunded = deal.getTranches()
                 .stream()
+                .filter(tranche -> tranche.getDeleteYn().equals(DeleteYn.N))
                 .map(Tranche::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
