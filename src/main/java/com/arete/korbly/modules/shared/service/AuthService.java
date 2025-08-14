@@ -1,6 +1,8 @@
 package com.arete.korbly.modules.shared.service;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.arete.korbly.infrastructure.integrations.OTPService;
 import com.arete.korbly.infrastructure.integrations.S3FileUploadService;
 import com.arete.korbly.infrastructure.security.JWTService;
@@ -10,10 +12,7 @@ import com.arete.korbly.modules.investor.dto.InvestorDTO;
 import com.arete.korbly.modules.investor.mapper.InvestorMapper;
 import com.arete.korbly.modules.investor.persistence.InvestorRepository;
 import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.dto.EmailRequest;
-import com.arete.korbly.modules.shared.dto.VerificationRequest;
-import com.arete.korbly.modules.shared.dto.VerificationResponse;
-import com.arete.korbly.modules.shared.dto.VerifyUser;
+import com.arete.korbly.modules.shared.dto.*;
 import com.arete.korbly.modules.shared.enums.UploadFileResponse;
 import com.arete.korbly.modules.shared.enums.UserType;
 import com.arete.korbly.modules.shared.exceptions.InvalidOTP;
@@ -24,6 +23,7 @@ import com.arete.korbly.modules.sme.dto.SMEApplicationDTO;
 import com.arete.korbly.modules.sme.dto.SMEDTO;
 import com.arete.korbly.modules.sme.mapper.SMEMapper;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 
 import java.io.IOException;
+import java.net.URL;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -46,6 +50,9 @@ public class AuthService {
     private final SMEMapper smeMapper;
     private final OTPService otpService;
     private final EmailService emailService;
+
+
+    Dotenv dotenv = Dotenv.configure().load();
 
     public AuthService(JWTService jwtService,
                        InvestorMapper investorMapper,
@@ -126,8 +133,10 @@ public class AuthService {
                 .primaryContactEmail(smeApplicationDTO.primaryContactEmail())
                 .userType(UserType.BUSINESS)
                 .build();
+
         SME newSME = SME.builder()
                 .companyName(smeApplicationDTO.companyName())
+                .appUser(sme)
                 .industry(smeApplicationDTO.industry())
                 .registrationNumber(smeApplicationDTO.registrationNumber())
                 .phoneNumber(smeApplicationDTO.phoneNumber())
@@ -163,6 +172,68 @@ public class AuthService {
         smeRepository.save(newSME);
         return smeMapper.smeEntityToSMEDto(newSME);
     }
+
+    public String generatePresignedDownloadUrl(String fileKey, int expirationMinutes) {
+        try {
+            // Set expiration time
+            Date expiration = Date.from(Instant.now().plusSeconds(expirationMinutes * 60L));
+
+            // Create the presigned URL request
+            GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(
+                    getBucketName(), // You'll need to add this method or use your bucket name
+                    fileKey
+            );
+            generatePresignedUrlRequest.setMethod(HttpMethod.GET);
+            generatePresignedUrlRequest.setExpiration(expiration);
+
+            // Generate the URL
+            URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
+            return url.toString();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate presigned URL for file: " + fileKey, e);
+        }
+    }
+
+    public String generatePresignedDownloadUrl(String fileKey) {
+        return generatePresignedDownloadUrl(fileKey, 15);
+    }
+
+    public InvestorDocumentUrls getInvestorDocumentUrls(UUID investorId, int expirationMinutes) {
+        Optional<Investor> investorOpt = investorRepository.findById(investorId);
+        if (investorOpt.isEmpty()) {
+            throw new UserNotFound();
+        }
+
+        Investor investor = investorOpt.get();
+
+        return new InvestorDocumentUrls(
+                generatePresignedDownloadUrl(investor.getCertificateOfIncorporationURL(), expirationMinutes),
+                generatePresignedDownloadUrl(investor.getAuditedFinancialStatementsURL(), expirationMinutes),
+                generatePresignedDownloadUrl(investor.getInvestmentPolicyStatementURL(), expirationMinutes),
+                generatePresignedDownloadUrl(investor.getBoardResolutionURL(), expirationMinutes)
+        );
+    }
+
+    /**
+     * Helper method to get presigned URLs for SME documents
+     */
+    public SMEDocumentUrls getSMEDocumentUrls(UUID smeId, int expirationMinutes) {
+        Optional<SME> smeOpt = smeRepository.findById(smeId);
+        if (smeOpt.isEmpty()) {
+            throw new UserNotFound();
+        }
+
+        SME sme = smeOpt.get();
+
+        return new SMEDocumentUrls(
+                generatePresignedDownloadUrl(sme.getCertOfIncorporation(), expirationMinutes),
+                generatePresignedDownloadUrl(sme.getLatestFinancialStatements(), expirationMinutes),
+                generatePresignedDownloadUrl(sme.getBusinessPlan(), expirationMinutes),
+                generatePresignedDownloadUrl(sme.getTaxClearanceCert(), expirationMinutes)
+        );
+    }
+
 
     public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response){
         if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
@@ -234,5 +305,56 @@ public class AuthService {
         return fileUploadService.uploadFile(key, file);
     }
 
+    private String getBucketName() {
+        return dotenv.get("BUCKET_NAME");
+    }
 
+    public String getInvestorDocumentByType(UUID investorId, String documentType, int expirationMinutes) {
+        Optional<Investor> investorOpt = investorRepository.findById(investorId);
+        if (investorOpt.isEmpty()) {
+            throw new UserNotFound();
+        }
+
+        Investor investor = investorOpt.get();
+        String fileKey = getInvestorFileKey(investor, documentType);
+
+        return generatePresignedDownloadUrl(fileKey, expirationMinutes);
+    }
+
+
+    public String getSMEDocumentByType(UUID smeId, String documentType, int expirationMinutes) {
+        Optional<SME> smeOpt = smeRepository.findById(smeId);
+        if (smeOpt.isEmpty()) {
+            throw new UserNotFound();
+        }
+
+        SME sme = smeOpt.get();
+        String fileKey = getSMEFileKey(sme, documentType);
+
+        return generatePresignedDownloadUrl(fileKey, expirationMinutes);
+    }
+
+
+    private String getInvestorFileKey(Investor investor, String documentType) {
+        return switch (documentType.toLowerCase()) {
+            case "incorporation", "certificate-of-incorporation" -> investor.getCertificateOfIncorporationURL();
+            case "financial-statements", "audited-financial-statements" -> investor.getAuditedFinancialStatementsURL();
+            case "policy-statement", "investment-policy-statement" -> investor.getInvestmentPolicyStatementURL();
+            case "board-resolution" -> investor.getBoardResolutionURL();
+            default -> throw new IllegalArgumentException("Invalid document type: " + documentType +
+                    ". Valid types are: incorporation, financial-statements, policy-statement, board-resolution");
+        };
+    }
+
+
+    private String getSMEFileKey(SME sme, String documentType) {
+        return switch (documentType.toLowerCase()) {
+            case "incorporation", "certificate-of-incorporation" -> sme.getCertOfIncorporation();
+            case "financial-statements", "latest-financial-statements" -> sme.getLatestFinancialStatements();
+            case "business-plan" -> sme.getBusinessPlan();
+            case "tax-clearance", "tax-clearance-certificate" -> sme.getTaxClearanceCert();
+            default -> throw new IllegalArgumentException("Invalid document type: " + documentType +
+                    ". Valid types are: incorporation, financial-statements, business-plan, tax-clearance");
+        };
+    }
 }

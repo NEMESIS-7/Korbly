@@ -132,6 +132,25 @@ public class APIExceptionHandler {
         return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(UserNotFound.class)
+    public ResponseEntity<?> handleUserNotFound(UserNotFound e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Invalid",
+                HttpStatus.UNAUTHORIZED.value(),
+                new APIException.APIError(
+                        HttpStatus.UNAUTHORIZED,
+                        "Account does not exist",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(SMENotFound.class)
     public ResponseEntity<?> handleSMENotFound(SMENotFound e, HttpServletRequest request){
         APIException apiException = new APIException(

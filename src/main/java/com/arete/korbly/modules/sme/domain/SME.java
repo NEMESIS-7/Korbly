@@ -1,5 +1,6 @@
 package com.arete.korbly.modules.sme.domain;
 
+import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.shared.enums.SMERegion;
@@ -73,11 +74,15 @@ public class SME {
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
 
+    @OneToOne
+    @JoinColumn(name = "userId")
+    private AppUser appUser;
 
     public SME() {
     }
 
-    public SME(UUID smeId, String companyName, SMEIndustry industry, String registrationNumber, String phoneNumber, SMERegion region, LocalDate dateEstablished, String websiteURL, String businessDescription, BigDecimal annualRevenue, Integer numberOfEmployees, BigDecimal monthlyRevenue, BigDecimal requestedAmount, String purposeOfFunding, String certOfIncorporation, String latestFinancialStatements, String businessPlan, String taxClearanceCert, DeleteYn deleteYn) {
+
+    public SME(UUID smeId, String companyName, SMEIndustry industry, String registrationNumber, String phoneNumber, SMERegion region, LocalDate dateEstablished, String websiteURL, String businessDescription, BigDecimal annualRevenue, Integer numberOfEmployees, BigDecimal monthlyRevenue, BigDecimal requestedAmount, String purposeOfFunding, String certOfIncorporation, String latestFinancialStatements, String businessPlan, String taxClearanceCert, DeleteYn deleteYn, AppUser appUser) {
         this.smeId = smeId;
         this.companyName = companyName;
         this.industry = industry;
@@ -97,6 +102,15 @@ public class SME {
         this.businessPlan = businessPlan;
         this.taxClearanceCert = taxClearanceCert;
         this.deleteYn = deleteYn;
+        this.appUser = appUser;
+    }
+
+    public AppUser getAppUser() {
+        return appUser;
+    }
+
+    public void setAppUser(AppUser appUser) {
+        this.appUser = appUser;
     }
 
     public DeleteYn getDeleteYn() {
