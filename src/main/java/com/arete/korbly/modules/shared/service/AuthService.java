@@ -52,7 +52,6 @@ public class AuthService {
     private final EmailService emailService;
 
 
-    Dotenv dotenv = Dotenv.configure().load();
 
     public AuthService(JWTService jwtService,
                        InvestorMapper investorMapper,
@@ -306,7 +305,7 @@ public class AuthService {
     }
 
     private String getBucketName() {
-        return dotenv.get("BUCKET_NAME");
+        return System.getenv("BUCKET_NAME");
     }
 
     public String getInvestorDocumentByType(UUID investorId, String documentType, int expirationMinutes) {
