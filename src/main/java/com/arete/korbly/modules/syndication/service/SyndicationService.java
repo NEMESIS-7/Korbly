@@ -20,6 +20,7 @@ import com.arete.korbly.modules.syndication.mapper.SyndicationMapper;
 import com.arete.korbly.modules.syndication.persistence.DealRepository;
 import com.arete.korbly.modules.syndication.persistence.TrancheRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class SyndicationService implements ISyndicationService{
     private final SMERepository smeRepository;
@@ -96,8 +98,9 @@ public class SyndicationService implements ISyndicationService{
         for(Tranche tranche : dealTranches){
             tranche.setDeleteYn(DeleteYn.Y);
         }
+        dealToDelete.setDeleteYn(DeleteYn.Y);
         trancheRepository.saveAll(dealTranches);
-        dealRepository.deleteDealById(dealId);
+        dealRepository.save(dealToDelete);
     }
 
     @Transactional
@@ -161,6 +164,8 @@ public class SyndicationService implements ISyndicationService{
     @Override
     public DealDTO moveDealToNextStage(UUID dealId) {
 
+        //todo seek clarification on deal status changes
+        //todo i.e moving from one stage to another...this works for now though
 
         Deal deal = dealRepository.findDealById(dealId)
                 .orElseThrow(DealNotFound::new);
@@ -183,5 +188,19 @@ public class SyndicationService implements ISyndicationService{
     public Page<DealDTO> getAllDeals(Pageable pageable){
         Page<Deal> page = dealRepository.listAllDeals(pageable);
         return page.map(syndicationMapper::toDealDTO);
+    }
+
+    @Override
+    public Page<TrancheDTO> getAllTranches(Pageable pageable){
+        Page<Tranche> tranches = trancheRepository.getAllTranches(pageable);
+        return tranches.map(syndicationMapper::toTrancheDTO);
+    }
+
+    @Override
+    public List<TrancheDTO> getSMETranches(UUID smeId){
+        return trancheRepository.findBySME(smeId)
+                .stream()
+                .map(syndicationMapper::toTrancheDTO)
+                .toList();
     }
 }

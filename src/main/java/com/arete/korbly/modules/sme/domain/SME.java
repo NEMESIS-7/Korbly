@@ -31,32 +31,32 @@ public class SME {
     @Column(nullable = false, unique = true)
     private String phoneNumber;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private SMERegion region;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private LocalDate dateEstablished;
 
     @Column(nullable = false, unique = true)
     private String websiteURL;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String businessDescription;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private BigDecimal annualRevenue;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private Integer numberOfEmployees;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private BigDecimal monthlyRevenue;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private BigDecimal requestedAmount;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String purposeOfFunding;
 
     @Column(nullable = false, unique = true)

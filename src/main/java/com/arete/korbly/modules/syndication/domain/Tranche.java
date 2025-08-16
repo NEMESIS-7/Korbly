@@ -160,6 +160,8 @@ public class Tranche {
     @PrePersist
     protected void onCreate(){
         this.createdAt = Timestamp.from(Instant.now());
+        this.updatedAt = Timestamp.from(Instant.now());
+        this.deleteYn = DeleteYn.N;
     }
 
     @PreUpdate

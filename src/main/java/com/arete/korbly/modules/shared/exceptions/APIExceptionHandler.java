@@ -2,10 +2,12 @@ package com.arete.korbly.modules.shared.exceptions;
 
 
 import com.arete.korbly.modules.syndication.exceptions.DealAmountExceeded;
+import com.arete.korbly.modules.syndication.exceptions.DealNotFound;
 import com.arete.korbly.modules.syndication.exceptions.DealStatusUpdateException;
 import com.arete.korbly.modules.syndication.exceptions.InvalidDealUpdate;
 import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -187,5 +189,43 @@ public class APIExceptionHandler {
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Duplicate",
+                HttpStatus.CONFLICT.value(),
+                new APIException.APIError(
+                        HttpStatus.CONFLICT,
+                        "A deal with this description already exists.",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DealNotFound.class)
+    public ResponseEntity<?> handleDealNotFound(DealNotFound e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Error",
+                HttpStatus.NOT_FOUND.value(),
+                new APIException.APIError(
+                        HttpStatus.NOT_FOUND,
+                        "Deal with this ID does not exist",
+                        Timestamp.from(Instant.now()),
+                        request.getRequestURI()
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);
     }
 }

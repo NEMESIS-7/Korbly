@@ -13,7 +13,6 @@ import lombok.Builder;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,7 +67,6 @@ public class Deal {
         this.createdAt = Timestamp.from(Instant.now());
         this.updatedAt = Timestamp.from(Instant.now());
         this.deleteYn = DeleteYn.N;
-        this.tranches = new ArrayList<>();
     }
 
     @PreUpdate

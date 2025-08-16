@@ -64,7 +64,7 @@ public class SyndicationController {
     @DeleteMapping("deals/delete/{dealId}")
     public ResponseEntity<?> deleteDeal(@PathVariable UUID dealId){
         syndicationService.deleteDeal(dealId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>("Deal deleted successfully.", HttpStatus.OK);
     }
 
     @PostMapping("/tranche/create/{dealId}")
@@ -81,6 +81,18 @@ public class SyndicationController {
     @DeleteMapping("/tranche/delete/{trancheId}")
     public ResponseEntity<?> deleteTranche(@PathVariable UUID trancheId){
         syndicationService.deleteTranche(trancheId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>("Tranche deleted successfully.", HttpStatus.OK);
+    }
+
+    @GetMapping("/tranches/get-all")
+    public ResponseEntity<?> getTranches(Pageable pageable){
+        return new ResponseEntity<>(syndicationService.getAllTranches(pageable), HttpStatus.OK);
+    }
+
+    @GetMapping("/tranches/{smeId}/get-all")
+    public ResponseEntity<?> getSMETranches(
+            @PathVariable UUID smeId
+    ){
+        return new ResponseEntity<>(syndicationService.getSMETranches(smeId), HttpStatus.OK);
     }
 }

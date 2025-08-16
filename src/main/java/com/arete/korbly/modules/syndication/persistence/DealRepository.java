@@ -1,12 +1,9 @@
 package com.arete.korbly.modules.syndication.persistence;
 
 import com.arete.korbly.modules.syndication.domain.Deal;
-import jakarta.persistence.LockModeType;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,11 +15,9 @@ import java.util.UUID;
 public interface DealRepository extends JpaRepository<Deal, UUID> {
 
     @Modifying
-    @Transactional
-    @Query("update Deal d set d.deleteYn = 'N' where d.dealId = :dealId")
+    @Query("update Deal d set d.deleteYn = 'Y' where d.dealId = :dealId")
     void deleteDealById(UUID dealId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select d from Deal d where d.dealId = :dealId and d.deleteYn = 'N'")
     Optional<Deal> findDealById(UUID dealId);
 
