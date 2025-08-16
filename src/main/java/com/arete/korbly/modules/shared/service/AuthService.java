@@ -23,7 +23,6 @@ import com.arete.korbly.modules.sme.dto.SMEApplicationDTO;
 import com.arete.korbly.modules.sme.dto.SMEDTO;
 import com.arete.korbly.modules.sme.mapper.SMEMapper;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
-import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;

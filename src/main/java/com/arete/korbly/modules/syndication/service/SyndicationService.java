@@ -53,6 +53,7 @@ public class SyndicationService implements ISyndicationService{
     public DealDTO createDeal(DealDTO dealDTO, AppUser createdBy) {
         SME smeInvolved = smeRepository.findSMEBySmeId(dealDTO.smeInvolved())
                 .orElseThrow(SMENotFound::new);
+
         Deal newDeal = Deal.builder()
                 .dealTitle(dealDTO.dealTitle())
                 .dealDescription(dealDTO.dealDescription())
