@@ -1,22 +1,28 @@
 package com.arete.korbly.modules.syndication.service;
 
+import com.arete.korbly.modules.investor.domain.Investor;
+import com.arete.korbly.modules.investor.persistence.InvestorRepository;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
+import com.arete.korbly.modules.shared.exceptions.InvestorNotFound;
 import com.arete.korbly.modules.shared.exceptions.SMENotFound;
 import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import com.arete.korbly.modules.sme.domain.SME;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
+import com.arete.korbly.modules.syndication.domain.Allocation;
 import com.arete.korbly.modules.syndication.domain.Deal;
 import com.arete.korbly.modules.syndication.domain.Tranche;
+import com.arete.korbly.modules.syndication.dto.AllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
+import com.arete.korbly.modules.syndication.enums.AllocationStatus;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
-import com.arete.korbly.modules.syndication.exceptions.DealAmountExceeded;
-import com.arete.korbly.modules.syndication.exceptions.DealNotFound;
-import com.arete.korbly.modules.syndication.exceptions.DealStatusUpdateException;
-import com.arete.korbly.modules.syndication.exceptions.InvalidDealUpdate;
+import com.arete.korbly.modules.syndication.enums.TrancheStatus;
+import com.arete.korbly.modules.syndication.exceptions.*;
+import com.arete.korbly.modules.syndication.mapper.AllocationMapper;
 import com.arete.korbly.modules.syndication.mapper.SyndicationMapper;
+import com.arete.korbly.modules.syndication.persistence.AllocationRepository;
 import com.arete.korbly.modules.syndication.persistence.DealRepository;
 import com.arete.korbly.modules.syndication.persistence.TrancheRepository;
 import jakarta.transaction.Transactional;
@@ -27,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -37,17 +44,24 @@ public class SyndicationService implements ISyndicationService{
     private final TrancheRepository trancheRepository;
     private final SyndicationMapper syndicationMapper;
     private final AppUserRepository appUserRepository;
+    private final AllocationRepository allocationRepository;
+    private final InvestorRepository investorRepository;
+    private final AllocationMapper allocationMapper;
 
     public SyndicationService(SMERepository smeRepository,
                               DealRepository dealRepository,
                               TrancheRepository trancheRepository,
                               SyndicationMapper syndicationMapper,
-                              AppUserRepository appUserRepository) {
+                              AppUserRepository appUserRepository,
+                              AllocationRepository allocationRepository, InvestorRepository investorRepository, AllocationMapper allocationMapper) {
         this.smeRepository = smeRepository;
         this.dealRepository = dealRepository;
         this.trancheRepository = trancheRepository;
         this.syndicationMapper = syndicationMapper;
         this.appUserRepository = appUserRepository;
+        this.allocationRepository = allocationRepository;
+        this.investorRepository = investorRepository;
+        this.allocationMapper = allocationMapper;
     }
 
     @Override
@@ -202,5 +216,59 @@ public class SyndicationService implements ISyndicationService{
                 .stream()
                 .map(syndicationMapper::toTrancheDTO)
                 .toList();
+    }
+
+    @Transactional
+    public AllocationDTO allocateTrancheToInvestor(AllocationDTO details) {
+        Tranche trancheToUpdate = allocationRepository.findByTrancheIdForUpdate(details.trancheId())
+                .orElseThrow(TrancheNotFound::new);
+        if(trancheToUpdate != null && trancheToUpdate.getDeleteYn().equals(DeleteYn.Y)){
+            throw new InvalidTrancheUpdate();
+        }
+
+        if(trancheToUpdate.getTrancheStatus().equals(TrancheStatus.ALLOCATED) || trancheToUpdate.getAllocated()){
+            throw new InvalidTrancheUpdate("Tranche has been allocated");
+        }
+
+        List<DealStatus> permitedDealStatus = List.of(
+                DealStatus.OPEN,
+                DealStatus.DRAFT,
+                DealStatus.PUBLISHED
+        );
+        if(!permitedDealStatus.contains(trancheToUpdate.getDeal().getDealStatus())){
+            throw new InvalidTrancheUpdate("Deal for this tranche is closed");
+        }
+
+        Investor investor = investorRepository.findById(details.investorId())
+                .orElseThrow(InvestorNotFound::new);
+        if(!investor.getInvestorVerified()){
+            throw new UnverifiedInvestor("Investor is unverified and cannot continue with action");
+        }
+
+        Optional<Allocation> possibleTrancheAllocation = allocationRepository.findAllocationByTrancheId(details.trancheId());
+        if(possibleTrancheAllocation.isPresent()){
+            throw new TrancheAlreadyAllocated("This tranche has already been allocated to an investor");
+        }
+
+        if(!details.amount().equals(trancheToUpdate.getAmount())){
+            throw new InvalidAllocationAmount("Allocation amount must be equal to tranche amount");
+        }
+
+        Allocation trancheAllocation = Allocation.builder()
+                .trancheId(trancheToUpdate)
+                .investorId(investor)
+                .amount(details.amount())
+                .allocationStatus(AllocationStatus.PENDING)
+                .build();
+
+        trancheToUpdate.setAllocated(Boolean.TRUE);
+        trancheToUpdate.setTrancheStatus(TrancheStatus.ALLOCATED);
+        trancheRepository.save(trancheToUpdate);
+
+        return allocationMapper
+                .mapEntityToDTO(
+                        allocationRepository
+                                .save(trancheAllocation)
+                );
     }
 }

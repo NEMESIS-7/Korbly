@@ -2,6 +2,7 @@ package com.arete.korbly.modules.syndication.domain;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
+import com.arete.korbly.modules.syndication.enums.TrancheStatus;
 import com.arete.korbly.modules.syndication.enums.TrancheType;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -47,8 +48,25 @@ public class Tranche {
     @JoinColumn(name = "createdById")
     private AppUser createdBy;
 
+    @Enumerated(EnumType.STRING)
+    private TrancheStatus trancheStatus;
 
-    public Tranche(UUID trancheId, TrancheType trancheType, BigDecimal amount, BigDecimal interestRate, Integer tenorMonths, Boolean isAnchor, Deal deal, Timestamp createdAt, Timestamp updatedAt, DeleteYn deleteYn, AppUser createdBy) {
+    private Boolean isAllocated;
+
+
+    public Tranche(UUID trancheId,
+                   TrancheType trancheType,
+                   BigDecimal amount,
+                   BigDecimal interestRate,
+                   Integer tenorMonths,
+                   Boolean isAnchor,
+                   Deal deal,
+                   Timestamp createdAt,
+                   Timestamp updatedAt,
+                   DeleteYn deleteYn,
+                   AppUser createdBy,
+                   TrancheStatus trancheStatus,
+                   Boolean isAllocated) {
         this.trancheId = trancheId;
         this.trancheType = trancheType;
         this.amount = amount;
@@ -60,9 +78,27 @@ public class Tranche {
         this.updatedAt = updatedAt;
         this.deleteYn = deleteYn;
         this.createdBy = createdBy;
+        this.trancheStatus = trancheStatus;
+        this.isAllocated = isAllocated;
     }
 
     public Tranche() {
+    }
+
+    public Boolean getAllocated() {
+        return isAllocated;
+    }
+
+    public void setAllocated(Boolean allocated) {
+        isAllocated = allocated;
+    }
+
+    public TrancheStatus getTrancheStatus() {
+        return trancheStatus;
+    }
+
+    public void setTrancheStatus(TrancheStatus trancheStatus) {
+        this.trancheStatus = trancheStatus;
     }
 
     public UUID getTrancheId() {
