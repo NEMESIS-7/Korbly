@@ -7,6 +7,7 @@ import com.arete.korbly.modules.syndication.enums.DealStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ISyndicationService {
@@ -34,4 +35,8 @@ public interface ISyndicationService {
     DealDTO moveDealToNextStage(UUID dealId);
 
     Page<DealDTO> getAllDeals(Pageable pageable);
+
+    Page<TrancheDTO> getAllTranches(Pageable pageable);
+
+    List<TrancheDTO> getSMETranches(UUID smeId);
 }

@@ -26,8 +26,7 @@ public class  APIException {
 
     public record APIError(HttpStatus code,
                            String message,
-                           Timestamp timestamp,
-                           String apiPath) {
+                           Timestamp timestamp) {
 
     }
 }
