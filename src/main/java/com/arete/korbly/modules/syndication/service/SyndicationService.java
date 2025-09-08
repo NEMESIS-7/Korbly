@@ -26,8 +26,8 @@ import com.arete.korbly.modules.syndication.persistence.AllocationRepository;
 import com.arete.korbly.modules.syndication.persistence.DealRepository;
 import com.arete.korbly.modules.syndication.persistence.TrancheRepository;
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Slf4j
 @Service
 public class SyndicationService implements ISyndicationService{
     private final SMERepository smeRepository;
@@ -230,18 +229,18 @@ public class SyndicationService implements ISyndicationService{
             throw new InvalidTrancheUpdate("Tranche has been allocated");
         }
 
-        List<DealStatus> permitedDealStatus = List.of(
+        List<DealStatus> permittedDealStatus = List.of(
                 DealStatus.OPEN,
                 DealStatus.DRAFT,
                 DealStatus.PUBLISHED
         );
-        if(!permitedDealStatus.contains(trancheToUpdate.getDeal().getDealStatus())){
+        if(!permittedDealStatus.contains(trancheToUpdate.getDeal().getDealStatus())){
             throw new InvalidTrancheUpdate("Deal for this tranche is closed");
         }
 
         Investor investor = investorRepository.findById(details.investorId())
                 .orElseThrow(InvestorNotFound::new);
-        if(!investor.getInvestorVerified()){
+        if(Boolean.FALSE.equals(investor.getInvestorVerified())){
             throw new UnverifiedInvestor("Investor is unverified and cannot continue with action");
         }
 
@@ -270,5 +269,58 @@ public class SyndicationService implements ISyndicationService{
                         allocationRepository
                                 .save(trancheAllocation)
                 );
+    }
+
+    public AllocationDTO confirmAllocation(UUID allocationId, UUID adminId){
+        Allocation confirmedAllocation = allocationRepository.findById(allocationId)
+                .orElseThrow(AllocationNotFound::new);
+        AppUser confirmedBy = appUserRepository.findById(adminId)
+                        .orElseThrow(UserNotFound::new);
+        confirmedAllocation.setAllocationStatus(AllocationStatus.CONFIRMED);
+        confirmedAllocation.setConfirmedBy(confirmedBy);
+
+        return allocationMapper.mapEntityToDTO(
+                allocationRepository.save(confirmedAllocation)
+        );
+    }
+
+    public Page<AllocationDTO> getAllAllocations(Pageable pageable){
+        Page<Allocation> allocations = allocationRepository.getAllAllocation(pageable);
+
+        List<AllocationDTO> dtoContent = allocations.getContent()
+                .stream()
+                .map(allocationMapper::mapEntityToDTO)
+                .toList();
+
+        return new PageImpl<>(dtoContent, pageable, allocations.getTotalElements());
+
+    }
+
+    public Page<AllocationDTO> getAllocationsByTranche(UUID trancheId, Pageable pageable){
+        Page<Allocation> allocations = allocationRepository.findAllocationsByTrancheId(trancheId, pageable);
+
+        List<AllocationDTO> pageContent = allocations
+                .getContent()
+                .stream()
+                .map(allocationMapper::mapEntityToDTO)
+                .toList();
+
+        return new PageImpl<>(
+                pageContent,
+                pageable,
+                allocations.getTotalElements()
+        );
+    }
+
+    public Page<AllocationDTO> findAllocationsByInvestorId(UUID investorId, Pageable pageable){
+        Page<Allocation> allocations = allocationRepository.findAllocationsByInvestorId(investorId, pageable);
+
+        List<AllocationDTO> pageContent = allocations
+                .getContent()
+                .stream()
+                .map(allocationMapper::mapEntityToDTO)
+                .toList();
+
+        return new PageImpl<>(pageContent, pageable, allocations.getTotalElements());
     }
 }

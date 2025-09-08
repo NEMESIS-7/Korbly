@@ -198,6 +198,8 @@ public class Tranche {
         this.createdAt = Timestamp.from(Instant.now());
         this.updatedAt = Timestamp.from(Instant.now());
         this.deleteYn = DeleteYn.N;
+        this.trancheStatus = TrancheStatus.OPEN;
+        this.isAllocated = Boolean.FALSE;
     }
 
     @PreUpdate

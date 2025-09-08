@@ -15,6 +15,6 @@ public record AllocationDTO(
         Timestamp createdAt,
         Timestamp updatedAt,
         UUID confirmedBy,
-        DeleteYn deleteYn
-) {
+        DeleteYn deleteYn,
+        UUID allocationId) {
 }

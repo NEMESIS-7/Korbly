@@ -1,10 +1,7 @@
 package com.arete.korbly.modules.shared.exceptions;
 
 
-import com.arete.korbly.modules.syndication.exceptions.DealAmountExceeded;
-import com.arete.korbly.modules.syndication.exceptions.DealNotFound;
-import com.arete.korbly.modules.syndication.exceptions.DealStatusUpdateException;
-import com.arete.korbly.modules.syndication.exceptions.InvalidDealUpdate;
+import com.arete.korbly.modules.syndication.exceptions.*;
 import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import org.hibernate.exception.ConstraintViolationException;
@@ -27,8 +24,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.NOT_FOUND,
                         "Investor account does not exist",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -46,8 +42,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         "Email is invalid",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -65,8 +60,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         "Deals can only be updated when open or in draft",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -85,8 +79,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         "Tranche amount exceed the amount of the deal left to be funded.",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -104,8 +97,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         e.getMessage(),
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -123,8 +115,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.UNAUTHORIZED,
                         "User entered a wrong OTP, request for a resend",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -142,8 +133,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.UNAUTHORIZED,
                         "Account does not exist",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -161,8 +151,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.NOT_FOUND,
                         "SME not found, check the ID entered",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -180,8 +169,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         "User passed invalid financial data.",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -199,8 +187,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.CONFLICT,
                         "A deal with this description already exists.",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -218,8 +205,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.NOT_FOUND,
                         "Deal with this ID does not exist",
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
@@ -227,5 +213,25 @@ public class APIExceptionHandler {
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);
+    }
+
+
+
+    @ExceptionHandler(InvalidAllocationAmount.class)
+    public ResponseEntity<?> handleInvalidAllocationAmount(InvalidAllocationAmount e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Error",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
     }
 }

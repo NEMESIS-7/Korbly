@@ -4,8 +4,10 @@ import com.arete.korbly.infrastructure.security.JWTService;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
+import com.arete.korbly.modules.syndication.dto.AllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
+import com.arete.korbly.modules.syndication.mapper.AllocationMapper;
 import com.arete.korbly.modules.syndication.service.SyndicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -24,17 +26,21 @@ public class SyndicationController {
     private final AppUserRepository appUserRepository;
     private final JWTService jwtService;
     private final HttpServletRequest httpServletRequest;
+    private final AllocationMapper allocationMapper;
 
     public SyndicationController(SyndicationService syndicationService,
                                  AppUserRepository appUserRepository,
                                  JWTService jwtService,
-                                 HttpServletRequest httpServletRequest) {
+                                 HttpServletRequest httpServletRequest,
+                                 AllocationMapper allocationMapper) {
         this.syndicationService = syndicationService;
         this.appUserRepository = appUserRepository;
         this.jwtService = jwtService;
         this.httpServletRequest = httpServletRequest;
+        this.allocationMapper = allocationMapper;
     }
 
+    //Deal APIs
     @PostMapping("/create-deal")
     public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO){
         UUID createdById = jwtService.extractAppUserId(httpServletRequest);
@@ -67,6 +73,7 @@ public class SyndicationController {
         return new ResponseEntity<>("Deal deleted successfully.", HttpStatus.OK);
     }
 
+    //Tranche APIs
     @PostMapping("/tranche/create/{dealId}")
     public ResponseEntity<?> createTranche(
             @PathVariable String dealId,
@@ -94,5 +101,32 @@ public class SyndicationController {
             @PathVariable UUID smeId
     ){
         return new ResponseEntity<>(syndicationService.getSMETranches(smeId), HttpStatus.OK);
+    }
+
+    //Allocation APIs
+    @PostMapping("/allocations")
+    public ResponseEntity<?> allocateTrancheToInvestor(@RequestBody @Valid AllocationDTO allocationDTO){
+        return new ResponseEntity<>(syndicationService.allocateTrancheToInvestor(allocationDTO), HttpStatus.OK);
+    }
+
+    @PutMapping("/allocations/{allocationId}/confirm")
+    public ResponseEntity<?> confirmAllocation(@PathVariable UUID allocationId){
+        UUID adminId = jwtService.extractAppUserId(httpServletRequest);
+        return new ResponseEntity<>(syndicationService.confirmAllocation(allocationId, adminId), HttpStatus.OK);
+    }
+
+    @GetMapping("/allocations")
+    public ResponseEntity<?> getAllAllocations(Pageable pageable){
+        return new ResponseEntity<>(syndicationService.getAllAllocations(pageable), HttpStatus.OK);
+    }
+
+    @GetMapping("/{trancheId}/allocations")
+    public ResponseEntity<?> getAllocationsByTranche(@PathVariable UUID trancheId, Pageable pageable){
+        return new ResponseEntity<>(syndicationService.getAllocationsByTranche(trancheId, pageable), HttpStatus.OK);
+    }
+
+    @GetMapping("/{investorId}/allocation")
+    public ResponseEntity<?> findAllocationsByInvestorId(@PathVariable UUID investorId, Pageable pageable){
+        return new ResponseEntity<>(syndicationService.findAllocationsByInvestorId(investorId, pageable), HttpStatus.OK);
     }
 }

@@ -73,7 +73,8 @@ public class SyndicationMapper {
                 tranche.getTenorMonths(),
                 tranche.isAnchor(),
                 tranche.getCreatedAt(),
-                tranche.getUpdatedAt()
+                tranche.getUpdatedAt(),
+                tranche.getTrancheStatus()
         );
     }
 

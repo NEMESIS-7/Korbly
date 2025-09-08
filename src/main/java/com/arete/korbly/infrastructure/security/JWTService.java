@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class JWTService {
 
     Dotenv dotenv = Dotenv.configure().load();
-    private String secretKey = dotenv.get("JWT_SECRET");
+    private final String secretKey = dotenv.get("JWT_SECRET");
 
     private final AppUserRepository appUserRepository;
 

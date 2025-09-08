@@ -1,5 +1,6 @@
 package com.arete.korbly.modules.syndication.dto;
 
+import com.arete.korbly.modules.syndication.enums.TrancheStatus;
 import com.arete.korbly.modules.syndication.enums.TrancheType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -27,5 +28,6 @@ public record TrancheDTO(
         Boolean isAnchor,
 
         Timestamp createdAt,
-        Timestamp updatedAt
+        Timestamp updatedAt,
+        TrancheStatus trancheStatus
 ) {}
