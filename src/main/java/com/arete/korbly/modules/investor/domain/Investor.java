@@ -73,8 +73,26 @@ public class Investor {
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
 
+    private Boolean isInvestorVerified;
 
-    public Investor(UUID investorId, InstitutionType institutionType, Set<InvestmentFocus> investmentFocus, RiskAppetite riskAppetite, String phoneNumber, String registrationNumber, LocalDate dateEstablished, String institutionalAddress, String institutionName, BigDecimal assetsUnderManagement, BigDecimal minimumInvestment, String certificateOfIncorporationURL, String auditedFinancialStatementsURL, String investmentPolicyStatementURL, String boardResolutionURL, AppUser appUser, DeleteYn deleteYn) {
+    public Investor(UUID investorId,
+                    InstitutionType institutionType,
+                    Set<InvestmentFocus> investmentFocus,
+                    RiskAppetite riskAppetite,
+                    String phoneNumber,
+                    String registrationNumber,
+                    LocalDate dateEstablished,
+                    String institutionalAddress,
+                    String institutionName,
+                    BigDecimal assetsUnderManagement,
+                    BigDecimal minimumInvestment,
+                    String certificateOfIncorporationURL,
+                    String auditedFinancialStatementsURL,
+                    String investmentPolicyStatementURL,
+                    String boardResolutionURL,
+                    AppUser appUser,
+                    DeleteYn deleteYn,
+                    Boolean isInvestorVerified) {
         this.investorId = investorId;
         this.institutionType = institutionType;
         this.investmentFocus = investmentFocus;
@@ -92,6 +110,7 @@ public class Investor {
         this.boardResolutionURL = boardResolutionURL;
         this.appUser = appUser;
         this.deleteYn = deleteYn;
+        this.isInvestorVerified = isInvestorVerified;
     }
 
     @PrePersist
@@ -104,9 +123,15 @@ public class Investor {
         this.deleteYn = DeleteYn.N;
     }
 
-
-
     public Investor() {
+    }
+
+    public Boolean getInvestorVerified() {
+        return isInvestorVerified;
+    }
+
+    public void setInvestorVerified(Boolean investorVerified) {
+        isInvestorVerified = investorVerified;
     }
 
     public DeleteYn getDeleteYn() {
