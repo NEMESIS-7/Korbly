@@ -152,8 +152,7 @@ public class APIExceptionHandler {
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
                         e.getMessage(),
-                        Timestamp.from(Instant.now()),
-                        request.getRequestURI()
+                        Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
         );
