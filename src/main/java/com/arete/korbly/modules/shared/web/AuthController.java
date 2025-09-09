@@ -80,6 +80,11 @@ public class AuthController {
         return new ResponseEntity<>(authService.verifyUserLogin(request, response), HttpStatus.OK);
     }
 
+    @PostMapping("/v2/verify")
+    public ResponseEntity<?> verifyUser(@RequestBody VerificationRequest request){
+        return new ResponseEntity<>(authService.loginResponse(request), HttpStatus.OK);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody VerifyUser user){
         authService.verify(user);

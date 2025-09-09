@@ -31,19 +31,25 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")){
+        // Try to get token from Authorization header first
+        String token = getTokenFromAuthorizationHeader(request);
+        System.out.println("token from auth header: " + token);
+
+
+        // If no token in header, try to get from cookie
+        if (token == null) {
+            token = getTokenFromCookie(request.getCookies());
+        }
+        System.out.println("token from cookie/header: " + token);
+
+        // If no token found anywhere, continue without authentication
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
+
         try{
-            String token = getTokenFromCookie(request.getCookies());
-            System.out.println("token from cookie: " + token);
-            if (token == null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
             final String userEmail = jwtService.extractUserEmail(token);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -71,6 +77,17 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             throw new RuntimeException(e.getMessage());
         }
     }
+
+    private String getTokenFromAuthorizationHeader(HttpServletRequest request) {
+        final String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            System.out.println("auth header: " + authorizationHeader);
+            return authorizationHeader.substring(7); // Remove "Bearer " prefix
+        }
+        return null;
+    }
+
+
     private String getTokenFromCookie(Cookie[] cookies) {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
