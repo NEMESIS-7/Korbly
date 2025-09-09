@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,4 +25,7 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
 
     @Query("select d from Deal d where d.deleteYn = 'N'")
     Page<Deal> listAllDeals(Pageable pageable);
+
+    @Query("select d from Deal d where d.dealStatus = 'OPEN' and d.deleteYn = 'N'")
+    List<Deal> getOpenDeals();
 }

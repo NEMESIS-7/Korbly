@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,6 +38,9 @@ public interface AllocationRepository extends JpaRepository<Allocation, UUID> {
 
     @Query("select a from Allocation a where a.investorId.investorId = :investorId")
     Page<Allocation> findAllocationsByInvestorId(UUID investorId, Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(a.amount), 0) FROM Allocation a WHERE a.trancheId.trancheId = :trancheId")
+    Optional<BigDecimal> sumAllocatedAmountByTrancheId(UUID trancheId);
 
 
 
