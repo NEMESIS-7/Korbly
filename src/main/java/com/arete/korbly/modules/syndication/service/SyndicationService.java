@@ -14,6 +14,7 @@ import com.arete.korbly.modules.syndication.domain.Allocation;
 import com.arete.korbly.modules.syndication.domain.Deal;
 import com.arete.korbly.modules.syndication.domain.Tranche;
 import com.arete.korbly.modules.syndication.dto.AllocationDTO;
+import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
 import com.arete.korbly.modules.syndication.enums.AllocationStatus;
@@ -218,7 +219,7 @@ public class SyndicationService implements ISyndicationService{
     }
 
     @Transactional
-    public AllocationDTO allocateTrancheToInvestor(AllocationDTO details) {
+    public AllocationDTO allocateTrancheToInvestor(CreateAllocationDTO details) {
         Tranche trancheToUpdate = allocationRepository.findByTrancheIdForUpdate(details.trancheId())
                 .orElseThrow(TrancheNotFound::new);
         if(trancheToUpdate != null && trancheToUpdate.getDeleteYn().equals(DeleteYn.Y)){

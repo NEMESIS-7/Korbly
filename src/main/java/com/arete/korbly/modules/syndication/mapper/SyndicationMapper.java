@@ -10,10 +10,21 @@ import com.arete.korbly.modules.syndication.enums.DealStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class SyndicationMapper {
+
+    public Tranche toTrancheEntity(TrancheDTO dto, Deal deal, AppUser createdBy) {
+        Tranche tranche = new Tranche();
+        tranche.setTrancheType(dto.trancheType());
+        tranche.setAmount(dto.amount());
+        tranche.setInterestRate(dto.interestRate());
+        tranche.setTenorMonths(dto.tenorMonths());
+        tranche.setAnchor(dto.isAnchor() != null && dto.isAnchor());
+        tranche.setDeal(deal);
+        tranche.setCreatedBy(createdBy);
+        return tranche;
+    }
 
     public Deal toDealEntity(DealDTO dto, SME sme, AppUser createdBy) {
         Deal deal = new Deal();
@@ -29,23 +40,11 @@ public class SyndicationMapper {
         if (dto.tranches() != null) {
             List<Tranche> trancheEntities = dto.tranches().stream()
                     .map(trancheDTO -> toTrancheEntity(trancheDTO, deal, createdBy))
-                    .collect(Collectors.toList());
+                    .toList();
             deal.setTranches(trancheEntities);
         }
 
         return deal;
-    }
-
-    public Tranche toTrancheEntity(TrancheDTO dto, Deal deal, AppUser createdBy) {
-        Tranche tranche = new Tranche();
-        tranche.setTrancheType(dto.trancheType());
-        tranche.setAmount(dto.amount());
-        tranche.setInterestRate(dto.interestRate());
-        tranche.setTenorMonths(dto.tenorMonths());
-        tranche.setAnchor(dto.isAnchor() != null && dto.isAnchor());
-        tranche.setDeal(deal);
-        tranche.setCreatedBy(createdBy);
-        return tranche;
     }
 
     public DealDTO toDealDTO(Deal deal) {
@@ -58,7 +57,7 @@ public class SyndicationMapper {
                 deal.getTranches() != null
                         ? deal.getTranches().stream()
                         .map(this::toTrancheDTO)
-                        .collect(Collectors.toList())
+                        .toList()
                         : null,
                 deal.getTotalAmount(),
                 deal.getDealSector()
