@@ -260,6 +260,27 @@ public class AuthService {
         }
     }
 
+    public LoginResponse loginResponse(VerificationRequest request){
+        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
+            AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
+                    .orElseThrow(UserNotFound::new);
+
+            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
+            user.setIsVerified(true);
+
+            appUserRepository.save(user);
+            return new LoginResponse(
+                    true,
+                    user.getUserType().name(),
+                    user.getPrimaryContactEmail(),
+                    user.getPrimaryContactEmail(),
+                    accessToken
+            );
+        }else{
+            throw new InvalidOTP();
+        }
+    }
+
     public AppUser verifyUser(VerifyUser verifyUser){
         Optional<AppUser> user = appUserRepository.findByPrimaryContactEmail(verifyUser.primaryContactEmail());
         if (user.isEmpty()){

@@ -1,6 +1,8 @@
 package com.arete.korbly.modules.syndication.service;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.syndication.dto.AllocationDTO;
+import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
@@ -39,4 +41,14 @@ public interface ISyndicationService {
     Page<TrancheDTO> getAllTranches(Pageable pageable);
 
     List<TrancheDTO> getSMETranches(UUID smeId);
+
+    AllocationDTO allocateTrancheToInvestor(CreateAllocationDTO details);
+
+    AllocationDTO confirmAllocation(UUID allocationId, UUID adminId);
+
+    Page<AllocationDTO> getAllAllocations(Pageable pageable);
+
+    Page<AllocationDTO> getAllocationsByTranche(UUID trancheId, Pageable pageable);
+
+    Page<AllocationDTO> findAllocationsByInvestorId(UUID investorId, Pageable pageable);
 }

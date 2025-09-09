@@ -4,7 +4,7 @@ import com.arete.korbly.infrastructure.security.JWTService;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
-import com.arete.korbly.modules.syndication.dto.AllocationDTO;
+import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
 import com.arete.korbly.modules.syndication.mapper.AllocationMapper;
@@ -105,7 +105,7 @@ public class SyndicationController {
 
     //Allocation APIs
     @PostMapping("/allocations")
-    public ResponseEntity<?> allocateTrancheToInvestor(@RequestBody @Valid AllocationDTO allocationDTO){
+    public ResponseEntity<?> allocateTrancheToInvestor(@RequestBody @Valid CreateAllocationDTO allocationDTO){
         return new ResponseEntity<>(syndicationService.allocateTrancheToInvestor(allocationDTO), HttpStatus.OK);
     }
 

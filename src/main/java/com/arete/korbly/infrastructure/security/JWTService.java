@@ -138,8 +138,21 @@ public class JWTService {
     }
 
     public UUID extractAppUserId(HttpServletRequest request){
-        String authToken = getTokenFromCookie(request.getCookies());
-        return extractAppUserId(authToken);
+        String token;
+        token = getTokenFromCookie(request.getCookies());
+        if(token != null){
+            token = getTokenFromAuthorizationHeader(request);
+        }
+        return extractAppUserId(token);
+    }
+
+    private String getTokenFromAuthorizationHeader(HttpServletRequest request) {
+        final String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            System.out.println("auth header: " + authorizationHeader);
+            return authorizationHeader.substring(7); // Remove "Bearer " prefix
+        }
+        return null;
     }
 
     private String getTokenFromCookie(Cookie[] cookies) {
