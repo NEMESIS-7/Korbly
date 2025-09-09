@@ -25,10 +25,12 @@ public class Allocation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID allocationId;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "trancheId")
     private Tranche trancheId;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "investor_id")
     private Investor investorId;
 
     @Column(nullable = false)

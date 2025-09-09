@@ -246,13 +246,21 @@ public class SyndicationService implements ISyndicationService{
             throw new UnverifiedInvestor("Investor is unverified and cannot continue with action");
         }
 
+        BigDecimal alreadyAllocated  = allocationRepository.sumAllocatedAmountByTrancheId(details.trancheId())
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal remainderToBeFunded = trancheToUpdate.getAmount().subtract(alreadyAllocated);
+
+        if(details.amount().compareTo(remainderToBeFunded) > 0){
+            throw new InvalidAllocationAmount("Allocation exceeds tranche remaining capacity");
+        }
+        if(details.amount().compareTo(BigDecimal.ZERO) <= 0){
+            throw new InvalidAllocationAmount("Allocation must be positive");
+        }
+
         Optional<Allocation> possibleTrancheAllocation = allocationRepository.findAllocationByTrancheId(details.trancheId());
         if(possibleTrancheAllocation.isPresent()){
             throw new TrancheAlreadyAllocated("This tranche has already been allocated to an investor");
-        }
-
-        if(!details.amount().equals(trancheToUpdate.getAmount())){
-            throw new InvalidAllocationAmount("Allocation amount must be equal to tranche amount");
         }
 
         Allocation trancheAllocation = Allocation.builder()
@@ -262,7 +270,12 @@ public class SyndicationService implements ISyndicationService{
                 .allocationStatus(AllocationStatus.PENDING)
                 .build();
 
-        trancheToUpdate.setAllocated(Boolean.TRUE);
+        if(details.amount().compareTo(remainderToBeFunded) == 0){
+            trancheToUpdate.setTrancheStatus(TrancheStatus.FULLY_ALLOCATED);
+            trancheToUpdate.setAllocated(Boolean.TRUE);
+        }else{
+            trancheToUpdate.setTrancheStatus(TrancheStatus.PARTIALLY_ALLOCATED);
+        }
         trancheToUpdate.setTrancheStatus(TrancheStatus.ALLOCATED);
         trancheRepository.save(trancheToUpdate);
 
@@ -285,6 +298,23 @@ public class SyndicationService implements ISyndicationService{
                 allocationRepository.save(confirmedAllocation)
         );
     }
+
+/*    public Set<InvestorDealViewDTO> getOpenDealsForInvestors(Pageable pageable){
+        // 1. Fetch all OPEN deals
+        // 2. For each deal, fetch its tranches
+        // 3. For each tranche, calculate allocated amount and remaining capacity
+        // 4. Filter out tranches with remainingCapacity <= 0
+        // 5. If deal still has at least one tranche, map deal + tranche views to DTO
+        // 6. Collect into Set<InvestorDealViewDTO> and return
+
+        List<Deal> openDeals = dealRepository.getOpenDeals();
+        for(Deal deal : openDeals){
+            List<Tranche> dealTranche = deal.getTranches();
+            for(Tranche tranche : dealTranche){
+                BigDecimal allocatedAmount = allocationRepository.findAllocationByTrancheId(tranche.getTrancheId())
+            }
+        }
+    }*/
 
     public Page<AllocationDTO> getAllAllocations(Pageable pageable){
         Page<Allocation> allocations = allocationRepository.getAllAllocation(pageable);
