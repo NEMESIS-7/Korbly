@@ -129,7 +129,7 @@ public class AuthService {
     ) throws IOException {
         AppUser sme = AppUser.builder()
                 .primaryContactEmail(smeApplicationDTO.primaryContactEmail())
-                .userType(UserType.BUSINESS)
+                .userType(UserType.SME)
                 .build();
 
         SME newSME = SME.builder()
