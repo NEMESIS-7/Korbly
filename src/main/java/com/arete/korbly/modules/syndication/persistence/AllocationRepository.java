@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public interface AllocationRepository extends JpaRepository<Allocation, UUID> {
     Boolean existsByTrancheId(UUID trancheId);
 
     @Query("select a from Allocation a where a.trancheId.trancheId = :trancheId")
-    Optional<Allocation> findAllocationByTrancheId(UUID trancheId);
+    List<Allocation> findAllocationByTrancheId(UUID trancheId);
 
     @Query("select a from Allocation a where a.allocationId = :allocationId")
     Optional<Allocation> findById(UUID allocationId);

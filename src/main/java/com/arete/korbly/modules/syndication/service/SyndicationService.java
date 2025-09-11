@@ -13,10 +13,7 @@ import com.arete.korbly.modules.sme.persistence.SMERepository;
 import com.arete.korbly.modules.syndication.domain.Allocation;
 import com.arete.korbly.modules.syndication.domain.Deal;
 import com.arete.korbly.modules.syndication.domain.Tranche;
-import com.arete.korbly.modules.syndication.dto.AllocationDTO;
-import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
-import com.arete.korbly.modules.syndication.dto.DealDTO;
-import com.arete.korbly.modules.syndication.dto.TrancheDTO;
+import com.arete.korbly.modules.syndication.dto.*;
 import com.arete.korbly.modules.syndication.enums.AllocationStatus;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
 import com.arete.korbly.modules.syndication.enums.TrancheStatus;
@@ -33,9 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class SyndicationService implements ISyndicationService{
@@ -227,7 +222,7 @@ public class SyndicationService implements ISyndicationService{
             throw new InvalidTrancheUpdate();
         }
 
-        if(trancheToUpdate.getTrancheStatus().equals(TrancheStatus.ALLOCATED) || trancheToUpdate.getAllocated()){
+        if(trancheToUpdate.getTrancheStatus().equals(TrancheStatus.FULLY_ALLOCATED)){
             throw new InvalidTrancheUpdate("Tranche has been allocated");
         }
 
@@ -258,10 +253,10 @@ public class SyndicationService implements ISyndicationService{
             throw new InvalidAllocationAmount("Allocation must be positive");
         }
 
-        Optional<Allocation> possibleTrancheAllocation = allocationRepository.findAllocationByTrancheId(details.trancheId());
+/*        Optional<Allocation> possibleTrancheAllocation = allocationRepository.findAllocationByTrancheId(details.trancheId());
         if(possibleTrancheAllocation.isPresent()){
             throw new TrancheAlreadyAllocated("This tranche has already been allocated to an investor");
-        }
+        }*/
 
         Allocation trancheAllocation = Allocation.builder()
                 .trancheId(trancheToUpdate)
@@ -276,7 +271,7 @@ public class SyndicationService implements ISyndicationService{
         }else{
             trancheToUpdate.setTrancheStatus(TrancheStatus.PARTIALLY_ALLOCATED);
         }
-        trancheToUpdate.setTrancheStatus(TrancheStatus.ALLOCATED);
+//        trancheToUpdate.setTrancheStatus(TrancheStatus.ALLOCATED);
         trancheRepository.save(trancheToUpdate);
 
         return allocationMapper
@@ -299,22 +294,61 @@ public class SyndicationService implements ISyndicationService{
         );
     }
 
-/*    public Set<InvestorDealViewDTO> getOpenDealsForInvestors(Pageable pageable){
+    public Set<InvestorDealViewDTO> getOpenDealsForInvestors(Pageable pageable){
         // 1. Fetch all OPEN deals
         // 2. For each deal, fetch its tranches
         // 3. For each tranche, calculate allocated amount and remaining capacity
         // 4. Filter out tranches with remainingCapacity <= 0
         // 5. If deal still has at least one tranche, map deal + tranche views to DTO
         // 6. Collect into Set<InvestorDealViewDTO> and return
+        Set<InvestorDealViewDTO> result = new HashSet<>();
 
         List<Deal> openDeals = dealRepository.getOpenDeals();
-        for(Deal deal : openDeals){
+        for(Deal deal : openDeals) {
+            List<InvestorTrancheViewDTO> eligibleTranches = new ArrayList<>();
+
             List<Tranche> dealTranche = deal.getTranches();
-            for(Tranche tranche : dealTranche){
-                BigDecimal allocatedAmount = allocationRepository.findAllocationByTrancheId(tranche.getTrancheId())
+            for (Tranche tranche : dealTranche) {
+                List<Allocation> allocations = allocationRepository.findAllocationByTrancheId(tranche.getTrancheId());
+                BigDecimal allocatedSoFar = BigDecimal.ZERO;
+                for (Allocation allocation : allocations) {
+                    allocatedSoFar = allocatedSoFar.add(allocation.getAmount());
+                    System.out.println("amount allocated: " + allocatedSoFar);
+                }
+
+                System.out.println("allocated so far: " + allocatedSoFar);
+                BigDecimal remainingCapacity = tranche.getAmount().subtract(allocatedSoFar);
+
+                System.out.println("remaining capacity: " + remainingCapacity);
+
+                if (remainingCapacity.compareTo(BigDecimal.ZERO) > 0) {
+                    InvestorTrancheViewDTO trancheViewDTO = new InvestorTrancheViewDTO(
+                            tranche.getTrancheId(),
+                            tranche.getTrancheType().toString(),
+                            tranche.getAmount(),
+                            allocatedSoFar,
+                            remainingCapacity,
+                            tranche.getInterestRate(),
+                            tranche.getTenorMonths()
+                    );
+                    eligibleTranches.add(trancheViewDTO);
+                }
+            }
+            if (!eligibleTranches.isEmpty()) {
+                InvestorDealViewDTO dealView = new InvestorDealViewDTO(
+                        deal.getDealId(),
+                        deal.getDealTitle(),
+                        deal.getDealDescription(),
+                        deal.getDealSector().toString(),
+                        deal.getCurrency().toString(),
+                        deal.getTotalAmount(),
+                        eligibleTranches
+                );
+                result.add(dealView);
             }
         }
-    }*/
+        return result;
+    }
 
     public Page<AllocationDTO> getAllAllocations(Pageable pageable){
         Page<Allocation> allocations = allocationRepository.getAllAllocation(pageable);
