@@ -88,7 +88,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody VerifyUser user){
         authService.verify(user);
-        return new ResponseEntity<>("OTP sent to email", HttpStatus.OK);    }
+        return new ResponseEntity<>("OTP sent to email", HttpStatus.OK);
+    }
 
 
     @PostMapping("/test-upload")

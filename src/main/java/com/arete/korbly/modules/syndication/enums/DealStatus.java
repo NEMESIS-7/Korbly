@@ -5,6 +5,7 @@ public enum DealStatus {
     DRAFT("Draft"),
     OPEN("Open"),
     CLOSED("Closed"),
+    REVIEW("Pending Review"),
     PUBLISHED("Published");
 
     private final String value;

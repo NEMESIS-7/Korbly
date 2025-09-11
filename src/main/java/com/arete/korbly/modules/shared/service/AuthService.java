@@ -23,7 +23,6 @@ import com.arete.korbly.modules.sme.dto.SMEApplicationDTO;
 import com.arete.korbly.modules.sme.dto.SMEDTO;
 import com.arete.korbly.modules.sme.mapper.SMEMapper;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
-import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -52,7 +51,6 @@ public class AuthService {
     private final EmailService emailService;
 
 
-    Dotenv dotenv = Dotenv.configure().load();
 
     public AuthService(JWTService jwtService,
                        InvestorMapper investorMapper,
@@ -131,7 +129,7 @@ public class AuthService {
     ) throws IOException {
         AppUser sme = AppUser.builder()
                 .primaryContactEmail(smeApplicationDTO.primaryContactEmail())
-                .userType(UserType.BUSINESS)
+                .userType(UserType.SME)
                 .build();
 
         SME newSME = SME.builder()
@@ -327,7 +325,7 @@ public class AuthService {
     }
 
     private String getBucketName() {
-        return dotenv.get("BUCKET_NAME");
+        return System.getenv("BUCKET_NAME");
     }
 
     public String getInvestorDocumentByType(UUID investorId, String documentType, int expirationMinutes) {

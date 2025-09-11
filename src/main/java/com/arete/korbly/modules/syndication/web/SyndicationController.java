@@ -129,4 +129,9 @@ public class SyndicationController {
     public ResponseEntity<?> findAllocationsByInvestorId(@PathVariable UUID investorId, Pageable pageable){
         return new ResponseEntity<>(syndicationService.findAllocationsByInvestorId(investorId, pageable), HttpStatus.OK);
     }
+
+    @GetMapping("/investor/deals")
+    public ResponseEntity<?> getOpenDeals(Pageable pageable){
+        return new ResponseEntity<>(syndicationService.getOpenDealsForInvestors(pageable), HttpStatus.OK);
+    }
 }
