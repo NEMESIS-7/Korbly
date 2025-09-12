@@ -15,8 +15,8 @@ import java.util.UUID;
 @Entity
 @Table(
         indexes = {
-                @Index(name = "idx_investor", columnList = "investor_id_investor_id"),
-                @Index(name = "idx_tranche", columnList = "tranche_id_tranche_id")
+                @Index(name = "idx_investor", columnList = "investor_id"),
+                @Index(name = "idx_tranche", columnList = "tranche_id")
         }
 )
 @Builder
@@ -26,7 +26,7 @@ public class Allocation {
     private UUID allocationId;
 
     @ManyToOne
-    @JoinColumn(name = "trancheId")
+    @JoinColumn(name = "tranche_Id")
     private Tranche trancheId;
 
     @ManyToOne

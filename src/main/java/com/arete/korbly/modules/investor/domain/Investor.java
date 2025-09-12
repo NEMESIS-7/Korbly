@@ -1,10 +1,7 @@
 package com.arete.korbly.modules.investor.domain;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.enums.DeleteYn;
-import com.arete.korbly.modules.shared.enums.InstitutionType;
-import com.arete.korbly.modules.shared.enums.InvestmentFocus;
-import com.arete.korbly.modules.shared.enums.RiskAppetite;
+import com.arete.korbly.modules.shared.enums.*;
 import jakarta.persistence.*;
 import lombok.Builder;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -75,6 +72,9 @@ public class Investor {
 
     private Boolean isInvestorVerified;
 
+    @Enumerated(EnumType.STRING)
+    private InvestorType investorType;
+
     public Investor(UUID investorId,
                     InstitutionType institutionType,
                     Set<InvestmentFocus> investmentFocus,
@@ -92,7 +92,8 @@ public class Investor {
                     String boardResolutionURL,
                     AppUser appUser,
                     DeleteYn deleteYn,
-                    Boolean isInvestorVerified) {
+                    Boolean isInvestorVerified,
+                    InvestorType investorType) {
         this.investorId = investorId;
         this.institutionType = institutionType;
         this.investmentFocus = investmentFocus;
@@ -111,6 +112,7 @@ public class Investor {
         this.appUser = appUser;
         this.deleteYn = deleteYn;
         this.isInvestorVerified = isInvestorVerified;
+        this.investorType = investorType;
     }
 
     @PrePersist
@@ -268,5 +270,13 @@ public class Investor {
 
     public void setInstitutionName(String institutionName) {
         this.institutionName = institutionName;
+    }
+
+    public InvestorType getInvestorType() {
+        return investorType;
+    }
+
+    public void setInvestorType(InvestorType investorType) {
+        this.investorType = investorType;
     }
 }

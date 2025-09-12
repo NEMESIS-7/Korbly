@@ -271,4 +271,22 @@ public class APIExceptionHandler {
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(UnauthorizedAccess.class)
+    public ResponseEntity<?> handleUnauthorizedAccess(UnauthorizedAccess e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Error",
+                HttpStatus.UNAUTHORIZED.value(),
+                new APIException.APIError(
+                        HttpStatus.UNAUTHORIZED,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
+    }
 }
