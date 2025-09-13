@@ -43,7 +43,7 @@ public interface IRegulatorService {
      * @param pageable
      * @return
      */
-    List<RegulatorDealViewDTO> getDealsForRegulator(UUID regulatorId, Pageable pageable);
+    Page<RegulatorDealViewDTO> getDealsForRegulator(UUID regulatorId, Pageable pageable);
 
     /**
      *

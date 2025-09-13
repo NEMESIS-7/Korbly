@@ -49,6 +49,8 @@ public class Allocation {
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
 
+    private Timestamp confirmedAt;
+
     @PrePersist
     protected void onCreate(){
         this.deleteYn = DeleteYn.N;
@@ -63,7 +65,8 @@ public class Allocation {
 
     public Allocation(UUID allocationId, Tranche trancheId, Investor investorId, BigDecimal amount, AllocationStatus allocationStatus, Timestamp createdAt, Timestamp updatedAt,
                       AppUser confirmedBy,
-                      DeleteYn deleteYn) {
+                      DeleteYn deleteYn,
+                      Timestamp confirmedAt) {
         this.allocationId = allocationId;
         this.trancheId = trancheId;
         this.investorId = investorId;
@@ -73,6 +76,7 @@ public class Allocation {
         this.updatedAt = updatedAt;
         this.confirmedBy = confirmedBy;
         this.deleteYn = deleteYn;
+        this.confirmedAt = confirmedAt;
     }
 
     public DeleteYn getDeleteYn() {
@@ -148,5 +152,13 @@ public class Allocation {
 
     public void setConfirmedBy(AppUser confirmedBy) {
         this.confirmedBy = confirmedBy;
+    }
+
+    public Timestamp getConfirmedAt() {
+        return confirmedAt;
+    }
+
+    public void setConfirmedAt(Timestamp confirmedAt) {
+        this.confirmedAt = confirmedAt;
     }
 }
