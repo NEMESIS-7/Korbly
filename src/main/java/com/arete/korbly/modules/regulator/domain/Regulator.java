@@ -42,6 +42,10 @@ public class Regulator {
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
 
+    @OneToOne
+    @JoinColumn(name = "created_by")
+    private AppUser createdBy;
+
     @PrePersist
     protected void onCreate(){
         this.createdAt = Timestamp.from(Instant.now());
@@ -55,7 +59,7 @@ public class Regulator {
     }
 
 
-    public Regulator(UUID regulatorId, String regulatorName, String regulatorJurisdiction, RegulatorType regulatorType, RegulatorStatus regulatorStatus, AppUser appUser, Timestamp createdAt, Timestamp updatedAt, DeleteYn deleteYn) {
+    public Regulator(UUID regulatorId, String regulatorName, String regulatorJurisdiction, RegulatorType regulatorType, RegulatorStatus regulatorStatus, AppUser appUser, Timestamp createdAt, Timestamp updatedAt, DeleteYn deleteYn, AppUser createdBy) {
         this.regulatorId = regulatorId;
         this.regulatorName = regulatorName;
         this.regulatorJurisdiction = regulatorJurisdiction;
@@ -65,6 +69,7 @@ public class Regulator {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deleteYn = deleteYn;
+        this.createdBy = createdBy;
     }
 
     public Regulator() {
@@ -140,5 +145,29 @@ public class Regulator {
 
     public void setDeleteYn(DeleteYn deleteYn) {
         this.deleteYn = deleteYn;
+    }
+
+    public String getRegulatorName() {
+        return regulatorName;
+    }
+
+    public void setRegulatorName(String regulatorName) {
+        this.regulatorName = regulatorName;
+    }
+
+    public String getRegulatorJurisdiction() {
+        return regulatorJurisdiction;
+    }
+
+    public void setRegulatorJurisdiction(String regulatorJurisdiction) {
+        this.regulatorJurisdiction = regulatorJurisdiction;
+    }
+
+    public AppUser getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(AppUser createdBy) {
+        this.createdBy = createdBy;
     }
 }

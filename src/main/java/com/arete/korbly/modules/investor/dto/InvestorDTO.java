@@ -1,9 +1,6 @@
 package com.arete.korbly.modules.investor.dto;
 
-import com.arete.korbly.modules.shared.enums.DeleteYn;
-import com.arete.korbly.modules.shared.enums.InstitutionType;
-import com.arete.korbly.modules.shared.enums.InvestmentFocus;
-import com.arete.korbly.modules.shared.enums.RiskAppetite;
+import com.arete.korbly.modules.shared.enums.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +31,6 @@ public class InvestorDTO {
     private String investmentPolicyStatementURL;
     private String boardResolutionURL;
     private DeleteYn deleteYn;
+    private InvestorType investorType;
+
 }

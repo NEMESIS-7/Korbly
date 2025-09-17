@@ -5,11 +5,11 @@ import com.arete.korbly.modules.regulator.dto.CreateRegulatorDTO;
 import com.arete.korbly.modules.regulator.dto.RegulatorDTO;
 import com.arete.korbly.modules.regulator.dto.RegulatorDealViewDTO;
 import com.arete.korbly.modules.regulator.enums.RegulatorStatus;
+import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface IRegulatorService {
@@ -61,7 +61,7 @@ public interface IRegulatorService {
      * @param pageable
      * @return
      */
-    List<AuditLogDTO> getAuditLogsForEntity(UUID regulatorId, String entityType, UUID entityId, Pageable pageable);
+    Page<AuditLogDTO> getAuditLogsForEntity(UUID regulatorId, String entityType, UUID entityId, Pageable pageable);
 
     /**
      *
@@ -69,7 +69,7 @@ public interface IRegulatorService {
      * @param pageable
      * @return
      */
-    List<AuditLogDTO> getAllAuditLogs(UUID regulatorId, Pageable pageable);
+    Page<AuditLogDTO> getAllAuditLogs(UUID regulatorId, Pageable pageable);
 
     /**
      *
@@ -79,6 +79,6 @@ public interface IRegulatorService {
      * @param pageable
      * @return
      */
-    List<RegulatorDealViewDTO> searchDeals(UUID regulatorId, String sector, DealStatus status, Pageable pageable);
+    Page<RegulatorDealViewDTO> searchDeals(UUID regulatorId, SMEIndustry sector, DealStatus status, Pageable pageable);
 
 }

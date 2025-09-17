@@ -1,13 +1,16 @@
 package com.arete.korbly.modules.regulator.service;
 
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.regulator.domain.AuditLog;
 import com.arete.korbly.modules.regulator.domain.Regulator;
 import com.arete.korbly.modules.regulator.dto.*;
 import com.arete.korbly.modules.regulator.enums.RegulatorStatus;
+import com.arete.korbly.modules.regulator.mapper.AuditLogMapper;
 import com.arete.korbly.modules.regulator.mapper.RegulatorMapper;
 import com.arete.korbly.modules.regulator.persistence.AuditLogRepository;
 import com.arete.korbly.modules.regulator.persistence.RegulatorRepository;
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.shared.enums.UserType;
 import com.arete.korbly.modules.shared.exceptions.UnauthorizedAccess;
 import com.arete.korbly.modules.shared.exceptions.UserAlreadyExists;
@@ -42,6 +45,7 @@ public class RegulatorService implements IRegulatorService {
     private final RegulatorMapper regulatorMapper;
     private final DealRepository dealRepository;
     private final AllocationRepository allocationRepository;
+    private final AuditLogMapper auditLogMapper;
 
     public RegulatorService(HttpServletRequest request,
                             RegulatorRepository regulatorRepository,
@@ -50,7 +54,7 @@ public class RegulatorService implements IRegulatorService {
                             AppUserRepository appUserRepository,
                             RegulatorMapper regulatorMapper,
                             DealRepository dealRepository,
-                            AllocationRepository allocationRepository) {
+                            AllocationRepository allocationRepository, AuditLogMapper auditLogMapper) {
         this.request = request;
         this.regulatorRepository = regulatorRepository;
         this.auditLogRepository = auditLogRepository;
@@ -59,6 +63,7 @@ public class RegulatorService implements IRegulatorService {
         this.regulatorMapper = regulatorMapper;
         this.dealRepository = dealRepository;
         this.allocationRepository = allocationRepository;
+        this.auditLogMapper = auditLogMapper;
     }
 
     @Override
@@ -66,12 +71,12 @@ public class RegulatorService implements IRegulatorService {
         AppUser admin = appUserRepository.findAppUserById(adminId)
                 .orElseThrow(() -> new UserNotFound("User account does not exist."));
 
-        if (!admin.getUserType().equals(UserType.ADMIN)){
+        if (!admin.getUserType().equals(UserType.ADMIN)) {
             throw new UnauthorizedAccess("User is not admin");
         }
 
         Optional<AppUser> potentialExisting = appUserRepository.findByPrimaryContactEmail(dto.regulatorEmail());
-        if (potentialExisting.isPresent()){
+        if (potentialExisting.isPresent()) {
             throw new UserAlreadyExists("User with this email already exists as a: " + potentialExisting.get().getUserType().toString());
         }
 
@@ -79,7 +84,7 @@ public class RegulatorService implements IRegulatorService {
                 .primaryContactEmail(dto.regulatorEmail())
                 .userType(UserType.REGULATORY_AUTHORITY)
                 .build();
-
+        appUserRepository.save(regulatorUser);
 
         //create the new regulator
         Regulator newRegulator = Regulator.builder()
@@ -88,19 +93,21 @@ public class RegulatorService implements IRegulatorService {
                 .regulatorType(dto.regulatorType())
                 .regulatorStatus(RegulatorStatus.ACTIVE)
                 .appUser(regulatorUser)
+                .createdBy(admin)
                 .build();
 
         return regulatorMapper
                 .entityToDTO(
-                regulatorRepository.save(newRegulator)
-        );
+                        regulatorRepository.save(newRegulator)
+                );
     }
 
     @Override
     public Page<RegulatorDTO> listAllRegulators(Pageable pageable) {
         Page<Regulator> regulators = regulatorRepository.getAllRegulators(pageable);
 
-        List<RegulatorDTO> regulatorDTOS = regulators.getContent()
+        List<RegulatorDTO> regulatorDTOS = regulators
+                .getContent()
                 .stream()
                 .map(regulatorMapper::entityToDTO)
                 .toList();
@@ -110,72 +117,34 @@ public class RegulatorService implements IRegulatorService {
 
     @Override
     public RegulatorDTO updateRegulatorStatus(UUID regulatorId, RegulatorStatus regulatorStatus) {
-        Regulator regulatorToUpdate = regulatorRepository.findById(regulatorId)
+        Regulator regulatorToUpdate = regulatorRepository.findByAppUserId(regulatorId)
                 .orElseThrow(() -> new UserNotFound("Regulator account with ID: " + regulatorId + " not found"));
 
         regulatorToUpdate.setRegulatorStatus(regulatorStatus);
 
-        return regulatorMapper.entityToDTO(regulatorToUpdate);
+        return regulatorMapper
+                .entityToDTO(
+                        regulatorRepository
+                                .save(regulatorToUpdate)
+                );
     }
 
     @Override
     public Page<RegulatorDealViewDTO> getDealsForRegulator(UUID regulatorId, Pageable pageable) {
-        Regulator regulator = regulatorRepository.findById(regulatorId)
+        Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
                 .orElseThrow(() -> new UserNotFound("Regulator account not found"));
-        if (!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)){
+
+        if (!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)) {
             throw new UnauthorizedAccess("Regulator account is inactive");
         }
         Page<Deal> deals = dealRepository.listAllDeals(pageable);
-        List<Deal> dealList = deals.getContent()
+
+        List<RegulatorDealViewDTO> dealViewDTOS = deals
+                .getContent()
                 .stream()
+                .map(this::toRegulatorDealView)
                 .toList();
-        List<RegulatorDealViewDTO> dealView = new ArrayList<>();
-        for(Deal deal : dealList){
-            List<RegulatorTrancheViewDTO> trancheViews = new ArrayList<>();
-            for(Tranche tranche : deal.getTranches()){
-                List<RegulatorAllocationViewDTO> allocations = new ArrayList<>();
-                BigDecimal allocatedSoFar = BigDecimal.ZERO;
-                List<Allocation> allocation = allocationRepository.findAllocationsByTrancheId(tranche.getTrancheId());
-                for(Allocation alloc : allocation){
-                    allocatedSoFar = allocatedSoFar.add(alloc.getAmount());
-
-                    RegulatorAllocationViewDTO allocationViewDTO = new RegulatorAllocationViewDTO(
-                            alloc.getAllocationId(),
-                            alloc.getInvestorId().getInvestorId(),
-                            alloc.getInvestorId().getInvestorType(),
-                            alloc.getAmount(),
-                            alloc.getAllocationStatus(),
-                            alloc.getConfirmedBy().getUserId() != null ? alloc.getConfirmedBy().getUserId() : null,
-                            alloc.getConfirmedAt()
-                    );
-                    allocations.add(allocationViewDTO);
-                }
-                BigDecimal remainingCapacity = tranche.getAmount().subtract(allocatedSoFar);
-
-                RegulatorTrancheViewDTO regulatorTrancheViewDTO = new RegulatorTrancheViewDTO(
-                        tranche.getTrancheId(),
-                        tranche.getTrancheType(),
-                        tranche.getAmount(),
-                        allocatedSoFar,
-                        remainingCapacity,
-                        tranche.getInterestRate(),
-                        tranche.getTenorMonths(),
-                        allocations
-                );
-                trancheViews.add(regulatorTrancheViewDTO);
-            }
-            RegulatorDealViewDTO regulatorDealViewDTO = new RegulatorDealViewDTO(
-                    deal.getDealId(),
-                    deal.getDealTitle(),
-                    deal.getDealDescription(),
-                    deal.getDealSector(),
-                    deal.getCurrency(),
-                    deal.getTotalAmount(),
-                    trancheViews
-            );
-            dealView.add(regulatorDealViewDTO);
-        }
-        return new PageImpl<>(dealView, pageable, deals.getTotalElements());
+        return new PageImpl<>(dealViewDTOS, pageable, deals.getTotalElements());
     }
 
     @Override
@@ -183,53 +152,115 @@ public class RegulatorService implements IRegulatorService {
         //build regulator allocation view
         // build allocator tranche view
         // build allocator deal view
-
-        Regulator regulator = regulatorRepository.findById(regulatorId)
+        Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
                 .orElseThrow(() -> new UserNotFound("Regulator account not found"));
-        if(!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)){
+        if (!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)) {
+            throw new UnauthorizedAccess("Regulator account is not active.");
+        }
+        Deal deal = dealRepository.findDealById(dealId)
+                .orElseThrow(() -> new DealNotFound("Deal with ID: " + dealId + " not found."));
+        return toRegulatorDealView(deal);
+    }
+
+    @Override
+    public Page<AuditLogDTO> getAuditLogsForEntity(UUID regulatorId, String entityType, UUID entityId, Pageable pageable) {
+        Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
+                .orElseThrow(() -> new UserNotFound("Regulator account not found"));
+        if (!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)) {
             throw new UnauthorizedAccess("Regulator account is not active.");
         }
 
-        Deal deal = dealRepository.findDealById(dealId)
-                .orElseThrow(() -> new DealNotFound("Deal with ID: " + dealId + " not found,"));
+        Page<AuditLog> auditLogs = auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId, pageable);
 
-        List<Tranche> dealTranches = deal.getTranches();
+        List<AuditLogDTO> auditLogDTOS = auditLogs.getContent()
+                .stream()
+                .map(auditLogMapper::entityToDTO)
+                .toList();
 
-        List<RegulatorTrancheViewDTO> regulatorTrancheView = new ArrayList<>();
-        for(Tranche tranche : dealTranches){
-            List<RegulatorAllocationViewDTO> regulatorAllocationViewDTOS = new ArrayList<>();
+        return new PageImpl<>(auditLogDTOS, pageable, auditLogDTOS.size());
+    }
+
+    @Override
+    public Page<AuditLogDTO> getAllAuditLogs(UUID regulatorId, Pageable pageable) {
+        Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
+                .orElseThrow(() -> new UserNotFound("Regulator account not found"));
+        if (!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)) {
+            throw new UnauthorizedAccess("Regulator account is not active.");
+        }
+
+        Page<AuditLog> allLogs = auditLogRepository.findAll(pageable);
+
+        List<AuditLogDTO> auditLogDTOS = allLogs.getContent()
+                .stream()
+                .map(auditLogMapper::entityToDTO)
+                .toList();
+        return new PageImpl<>(auditLogDTOS, pageable, allLogs.getTotalElements());
+    }
+
+    @Override
+    public Page<RegulatorDealViewDTO> searchDeals(UUID regulatorId, SMEIndustry sector, DealStatus status, Pageable pageable) {
+        Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
+                .orElseThrow(() -> new UserNotFound("Regulator account not found"));
+        if (!regulator.getRegulatorStatus().equals(RegulatorStatus.ACTIVE)) {
+            throw new UnauthorizedAccess("Regulator account is not active.");
+        }
+        Page<Deal> dealPage;
+        if (sector != null && status != null) {
+            dealPage = dealRepository.findByDealSectorAndDealStatus(sector, status, pageable);
+        } else if (sector != null && status == null) {
+            dealPage = dealRepository.findByDealSector(sector, pageable);
+        } else if (sector == null && status != null) {
+            dealPage = dealRepository.findByDealStatus(status, pageable);
+        } else {
+            dealPage = dealRepository.listAllDeals(pageable);
+        }
+
+        List<RegulatorDealViewDTO> dealViewDTOList = dealPage
+                .getContent()
+                .stream()
+                .map(this::toRegulatorDealView)
+                .toList();
+
+        return new PageImpl<>(dealViewDTOList, pageable, dealPage.getTotalElements());
+    }
+
+    private RegulatorDealViewDTO toRegulatorDealView(Deal deal) {
+        List<RegulatorTrancheViewDTO> trancheViews = new ArrayList<>();
+
+        for (Tranche tranche : deal.getTranches()) {
+            List<RegulatorAllocationViewDTO> allocations = new ArrayList<>();
             BigDecimal allocatedSoFar = BigDecimal.ZERO;
 
             List<Allocation> trancheAllocations = allocationRepository.findAllocationsByTrancheId(tranche.getTrancheId());
-            for(Allocation allocation : trancheAllocations){
-                allocatedSoFar = allocatedSoFar.add(allocation.getAmount());
-                RegulatorAllocationViewDTO allocationViewDTO = new RegulatorAllocationViewDTO(
-                        allocation.getAllocationId(),
-                        allocation.getInvestorId().getInvestorId(),
-                        allocation.getInvestorId().getInvestorType(),
-                        allocation.getAmount(),
-                        allocation.getAllocationStatus(),
-                        allocation.getConfirmedBy().getUserId(),
-                        allocation.getConfirmedAt()
-                );
-                regulatorAllocationViewDTOS.add(allocationViewDTO);
+            for (Allocation alloc : trancheAllocations) {
+                allocatedSoFar = allocatedSoFar.add(alloc.getAmount());
 
+                RegulatorAllocationViewDTO allocationViewDTO = new RegulatorAllocationViewDTO(
+                        alloc.getAllocationId(),
+                        alloc.getInvestorId().getInvestorId(),
+                        alloc.getInvestorId().getInvestorType(),
+                        alloc.getAmount(),
+                        alloc.getAllocationStatus(),
+                        alloc.getConfirmedBy() != null ? alloc.getConfirmedBy().getUserId() : null, // safe null check
+                        alloc.getConfirmedAt()
+                );
+                allocations.add(allocationViewDTO);
             }
+
             BigDecimal remainingCapacity = tranche.getAmount().subtract(allocatedSoFar);
 
-            regulatorTrancheView.add(
-                    new RegulatorTrancheViewDTO(
-                            tranche.getTrancheId(),
-                            tranche.getTrancheType(),
-                            tranche.getAmount(),
-                            allocatedSoFar,
-                            remainingCapacity,
-                            tranche.getInterestRate(),
-                            tranche.getTenorMonths(),
-                            regulatorAllocationViewDTOS
-                    )
-            );
+            trancheViews.add(new RegulatorTrancheViewDTO(
+                    tranche.getTrancheId(),
+                    tranche.getTrancheType(),
+                    tranche.getAmount(),
+                    allocatedSoFar,
+                    remainingCapacity,
+                    tranche.getInterestRate(),
+                    tranche.getTenorMonths(),
+                    allocations
+            ));
         }
+
         return new RegulatorDealViewDTO(
                 deal.getDealId(),
                 deal.getDealTitle(),
@@ -237,22 +268,7 @@ public class RegulatorService implements IRegulatorService {
                 deal.getDealSector(),
                 deal.getCurrency(),
                 deal.getTotalAmount(),
-                regulatorTrancheView
+                trancheViews
         );
-    }
-
-    @Override
-    public List<AuditLogDTO> getAuditLogsForEntity(UUID regulatorId, String entityType, UUID entityId, Pageable pageable) {
-        return List.of();
-    }
-
-    @Override
-    public List<AuditLogDTO> getAllAuditLogs(UUID regulatorId, Pageable pageable) {
-        return List.of();
-    }
-
-    @Override
-    public List<RegulatorDealViewDTO> searchDeals(UUID regulatorId, String sector, DealStatus status, Pageable pageable) {
-        return List.of();
     }
 }

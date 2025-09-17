@@ -17,4 +17,7 @@ public interface RegulatorRepository extends JpaRepository<Regulator, UUID> {
 
     @Query("select r from Regulator r where r.regulatorId = :regulatorId")
     Optional<Regulator> findById(UUID regulatorId);
+
+    @Query("select r from Regulator r where r.appUser.userId = :userId")
+    Optional<Regulator> findByAppUserId(UUID userId);
 }

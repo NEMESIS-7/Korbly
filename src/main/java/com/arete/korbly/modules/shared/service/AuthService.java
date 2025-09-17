@@ -96,6 +96,7 @@ public class AuthService {
                 .institutionName(investorApplicationDTO.institutionName())
                 .assetsUnderManagement(investorApplicationDTO.assetsUnderManagement())
                 .minimumInvestment(investorApplicationDTO.minimumInvestment())
+                .investorType(investorApplicationDTO.investorType())
                 .appUser(investor)
                 .build();
 

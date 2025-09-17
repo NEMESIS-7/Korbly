@@ -6,9 +6,18 @@ ALTER TABLE allocation
 
 CREATE TABLE audit_log
 (
-    log_id     UUID NOT NULL,
-    user_id    UUID,
-    created_on TIMESTAMP WITHOUT TIME ZONE,
+    log_id      UUID NOT NULL,
+    user_id     UUID,
+    actor_id    UUID,
+    actor_role  SMALLINT,
+    entity_type VARCHAR(255),
+    action      VARCHAR(255),
+    timestamp   TIMESTAMP WITHOUT TIME ZONE,
+    ip_address  VARCHAR(255),
+    request_id  VARCHAR(255),
+    entity_id   UUID,
+    created_on  TIMESTAMP WITHOUT TIME ZONE,
+    delete_yn   VARCHAR(255),
     CONSTRAINT pk_auditlog PRIMARY KEY (log_id)
 );
 
@@ -21,17 +30,20 @@ CREATE TABLE event_publication_archive
 
 CREATE TABLE regulator
 (
-    regulator_id     UUID         NOT NULL,
-    name             VARCHAR(255) NOT NULL,
-    jurisdiction     VARCHAR(255) NOT NULL,
-    regulator_type   VARCHAR(255),
-    regulator_status VARCHAR(255),
-    user_id          UUID,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
-    updated_at       TIMESTAMP WITHOUT TIME ZONE,
-    delete_yn        VARCHAR(255),
+    regulator_id           UUID         NOT NULL,
+    regulator_name         VARCHAR(255) NOT NULL,
+    regulator_jurisdiction VARCHAR(255) NOT NULL,
+    regulator_type         VARCHAR(255),
+    regulator_status       VARCHAR(255),
+    user_id                UUID,
+    created_at             TIMESTAMP WITHOUT TIME ZONE,
+    updated_at             TIMESTAMP WITHOUT TIME ZONE,
+    delete_yn              VARCHAR(255),
     CONSTRAINT pk_regulator PRIMARY KEY (regulator_id)
 );
+
+ALTER TABLE allocation
+    ADD confirmed_at TIMESTAMP WITHOUT TIME ZONE;
 
 ALTER TABLE investor
     ADD investor_type VARCHAR(255);
@@ -40,14 +52,11 @@ ALTER TABLE audit_log
     ADD CONSTRAINT uc_auditlog_user UNIQUE (user_id);
 
 ALTER TABLE regulator
-    ADD CONSTRAINT uc_regulator_name UNIQUE (name);
+    ADD CONSTRAINT uc_regulator_regulatorname UNIQUE (regulator_name);
 
 ALTER TABLE regulator
     ADD CONSTRAINT uc_regulator_user UNIQUE (user_id);
 
-CREATE INDEX idx_investor ON allocation (investor_id);
-
-CREATE INDEX idx_tranche ON allocation (tranche_id);
 
 ALTER TABLE audit_log
     ADD CONSTRAINT FK_AUDITLOG_ON_USER FOREIGN KEY (user_id) REFERENCES app_user (user_id);

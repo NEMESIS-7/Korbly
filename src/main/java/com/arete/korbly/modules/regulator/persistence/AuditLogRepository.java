@@ -12,6 +12,6 @@ import java.util.UUID;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
 
-    @Query("select a from AuditLog a where a.entityType = :entityType and a.entityId = :entityId and a.de")
+    @Query("select a from AuditLog a where a.entityType = :entityType and a.entityId = :entityId and a.deleteYn = 'N'")
     Page<AuditLog> findByEntityTypeAndEntityId(String entityType, UUID entityId, Pageable pageable);
 }
