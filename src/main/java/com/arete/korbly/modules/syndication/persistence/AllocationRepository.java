@@ -37,6 +37,9 @@ public interface AllocationRepository extends JpaRepository<Allocation, UUID> {
     @Query("select a from Allocation a  where a.trancheId.trancheId = :trancheId")
     Page<Allocation> findAllocationsByTrancheId(UUID trancheId, Pageable pageable);
 
+    @Query("select a from Allocation a  where a.trancheId.trancheId = :trancheId")
+    List<Allocation> findAllocationsByTrancheId(UUID trancheId);
+
     @Query("select a from Allocation a where a.investorId.investorId = :investorId")
     Page<Allocation> findAllocationsByInvestorId(UUID investorId, Pageable pageable);
 

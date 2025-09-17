@@ -17,7 +17,8 @@ public class CreditEvaluationController {
     private final CreditEvaluationService creditEvaluationService;
     private final SMERepository smeRepository;
 
-    public CreditEvaluationController(CreditEvaluationService creditEvaluationService, SMERepository smeRepository) {
+    public CreditEvaluationController(CreditEvaluationService creditEvaluationService,
+                                      SMERepository smeRepository) {
         this.creditEvaluationService = creditEvaluationService;
         this.smeRepository = smeRepository;
     }

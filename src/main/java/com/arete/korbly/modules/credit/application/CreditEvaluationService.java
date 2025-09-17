@@ -1,6 +1,6 @@
 package com.arete.korbly.modules.credit.application;
 
-import com.arete.korbly.modules.credit.ESGRiskRating;
+import com.arete.korbly.modules.credit.enums.ESGRiskRating;
 import com.arete.korbly.modules.credit.domain.CreditMemo;
 import com.arete.korbly.modules.credit.dto.CreditMemoDTO;
 import com.arete.korbly.modules.credit.dto.FinancialsDTO;

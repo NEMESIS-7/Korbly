@@ -1,4 +1,4 @@
-package com.arete.korbly.modules.credit;
+package com.arete.korbly.modules.credit.enums;
 
 public enum ESGRiskRating {
     LOW("Low"),

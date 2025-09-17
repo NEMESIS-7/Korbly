@@ -1,6 +1,6 @@
 package com.arete.korbly.modules.credit.util;
 
-import com.arete.korbly.modules.credit.ESGRiskRating;
+import com.arete.korbly.modules.credit.enums.ESGRiskRating;
 import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import org.springframework.stereotype.Component;
 
