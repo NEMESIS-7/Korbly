@@ -39,7 +39,14 @@ public class AppUser  {
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
 
-    public AppUser(UUID userId, String primaryContactEmail, UserType userType, Boolean isVerified, Timestamp createdOn, Timestamp updatedOn, Timestamp lastLogin, DeleteYn deleteYn) {
+    public AppUser(UUID userId,
+                   String primaryContactEmail,
+                   UserType userType,
+                   Boolean isVerified,
+                   Timestamp createdOn,
+                   Timestamp updatedOn,
+                   Timestamp lastLogin,
+                   DeleteYn deleteYn) {
         this.userId = userId;
         this.primaryContactEmail = primaryContactEmail;
         this.userType = userType;

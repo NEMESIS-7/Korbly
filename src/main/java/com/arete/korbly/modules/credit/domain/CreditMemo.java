@@ -1,6 +1,6 @@
 package com.arete.korbly.modules.credit.domain;
 
-import com.arete.korbly.modules.credit.ESGRiskRating;
+import com.arete.korbly.modules.credit.enums.ESGRiskRating;
 import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.sme.domain.SME;

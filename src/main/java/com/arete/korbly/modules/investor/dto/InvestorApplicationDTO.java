@@ -2,6 +2,7 @@ package com.arete.korbly.modules.investor.dto;
 
 import com.arete.korbly.modules.shared.enums.InstitutionType;
 import com.arete.korbly.modules.shared.enums.InvestmentFocus;
+import com.arete.korbly.modules.shared.enums.InvestorType;
 import com.arete.korbly.modules.shared.enums.RiskAppetite;
 
 import java.math.BigDecimal;
@@ -19,7 +20,8 @@ public record InvestorApplicationDTO(
         String institutionalAddress,
         BigDecimal minimumInvestment,
         RiskAppetite riskAppetite,
-        Set<InvestmentFocus> investmentFocusSet
+        Set<InvestmentFocus> investmentFocusSet,
+        InvestorType investorType
 ) {
 
 }

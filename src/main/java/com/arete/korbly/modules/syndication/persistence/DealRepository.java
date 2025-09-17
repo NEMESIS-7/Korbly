@@ -1,6 +1,8 @@
 package com.arete.korbly.modules.syndication.persistence;
 
+import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.syndication.domain.Deal;
+import com.arete.korbly.modules.syndication.enums.DealStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +30,13 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
 
     @Query("select d from Deal d where d.dealStatus = 'OPEN' and d.deleteYn = 'N'")
     List<Deal> getOpenDeals();
+
+    @Query("select d from Deal d where d.dealSector = :dealSector and d.deleteYn = 'N'")
+    Page<Deal> findByDealSector(SMEIndustry dealSector, Pageable pageable);
+
+    @Query("select d from Deal d where d.dealStatus = :dealStatus and d.deleteYn = 'N'")
+    Page<Deal> findByDealStatus(DealStatus dealStatus, Pageable pageable);
+
+    @Query("select d from Deal d where d.dealStatus = :dealSector and d.dealStatus = :status and d.deleteYn = 'N'")
+    Page<Deal> findByDealSectorAndDealStatus(SMEIndustry dealSector, DealStatus status, Pageable pageable);
 }

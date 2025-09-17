@@ -46,6 +46,24 @@ public class JWTService {
             claims.put("appUserId",appUser.get().getUserId());
             claims.put("appUserType", appUser.get().getUserType());
         }
+        if(appUser.get().getUserType().equals(UserType.REGULATORY_AUTHORITY)){
+            claims.put("regulatorUserId", appUser.get().getUserId());
+        }
+        if(appUser.get().getUserType().equals(UserType.ADMIN)){
+            claims.put("adminUserId", appUser.get().getUserId());
+        }
+        if(appUser.get().getUserType().equals(UserType.INSURANCE_REINSURANCE)){
+            claims.put("insurerUserId", appUser.get().getUserId());
+        }
+        if(appUser.get().getUserType().equals(UserType.SME)){
+            claims.put("smeUserId", appUser.get().getUserId());
+        }
+        if(appUser.get().getUserType().equals(UserType.INVESTOR)){
+            claims.put("investorUserId", appUser.get().getUserId());
+        }
+        if(appUser.get().getUserType().equals(UserType.HNWI)){
+            claims.put("hnwiUserId", appUser.get().getUserId());
+        }
 
         return Jwts.builder()
                 .claims()

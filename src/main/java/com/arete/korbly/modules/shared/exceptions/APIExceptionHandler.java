@@ -8,10 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -171,7 +169,7 @@ public class APIExceptionHandler {
                 HttpStatus.UNAUTHORIZED.value(),
                 new APIException.APIError(
                         HttpStatus.UNAUTHORIZED,
-                        "Account does not exist",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -180,6 +178,24 @@ public class APIExceptionHandler {
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(PSQLException.class)
+    public ResponseEntity<?> handlePSQLException(PSQLException e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Invalid",
+                HttpStatus.CONFLICT.value(),
+                new APIException.APIError(
+                        HttpStatus.CONFLICT,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -261,7 +277,7 @@ public class APIExceptionHandler {
                 HttpStatus.CONFLICT.value(),
                 new APIException.APIError(
                         HttpStatus.CONFLICT,
-                        "A deal with this description already exists.",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -308,5 +324,23 @@ public class APIExceptionHandler {
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UnauthorizedAccess.class)
+    public ResponseEntity<?> handleUnauthorizedAccess(UnauthorizedAccess e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "Error",
+                HttpStatus.UNAUTHORIZED.value(),
+                new APIException.APIError(
+                        HttpStatus.UNAUTHORIZED,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
     }
 }

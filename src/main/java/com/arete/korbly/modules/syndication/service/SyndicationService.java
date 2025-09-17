@@ -30,6 +30,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -288,6 +290,7 @@ public class SyndicationService implements ISyndicationService{
                         .orElseThrow(UserNotFound::new);
         confirmedAllocation.setAllocationStatus(AllocationStatus.CONFIRMED);
         confirmedAllocation.setConfirmedBy(confirmedBy);
+        confirmedAllocation.setConfirmedAt(Timestamp.from(Instant.now()));
 
         return allocationMapper.mapEntityToDTO(
                 allocationRepository.save(confirmedAllocation)
