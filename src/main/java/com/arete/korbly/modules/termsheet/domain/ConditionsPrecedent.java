@@ -81,6 +81,33 @@ public class ConditionsPrecedent {
     public ConditionsPrecedent() {
     }
 
+    public ConditionsPrecedent(
+            TermSheet termSheet,
+            String title,
+            String description,
+            Boolean required,
+            CPStatus status,
+            String evidenceFileKey,
+            String note,
+            AppUser approvedBy,
+            Timestamp createdAt,
+            DeleteYn deleteYn
+    ) {
+    }
+
+    public ConditionsPrecedent(TermSheet termSheet,
+                               String title,
+                               String description,
+                               Boolean required,
+                               CPStatus cpStatus,
+                               String evidenceFileKey,
+                               String note,
+                               AppUser approvedBy,
+                               Timestamp createdAt,
+                               String waiverReason,
+                               DeleteYn deleteYn) {
+    }
+
     public DeleteYn getDeleteYn() {
         return deleteYn;
     }
@@ -194,13 +221,13 @@ public class ConditionsPrecedent {
     }
 
     @PrePersist
-    protected void onCreate(){
+    protected void onCreate() {
         this.deleteYn = DeleteYn.N;
         this.createdAt = Timestamp.from(Instant.now());
     }
 
     @PreUpdate
-    protected void onUpdate(){
+    protected void onUpdate() {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 

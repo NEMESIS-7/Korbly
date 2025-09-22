@@ -1,23 +1,23 @@
 package com.arete.korbly.modules.termsheet.service;
 
-import com.arete.korbly.modules.termsheet.domain.TermSheet;
 import com.arete.korbly.modules.termsheet.dto.TermSheetDTO;
+import com.arete.korbly.modules.termsheet.dto.TermSheetResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface ITermSheetService {
 
-    TermSheet createTermSheet(TermSheetDTO dto, UUID createdByUserId);
-    TermSheet amendTermSheet(UUID parentId, TermSheetDTO dto, UUID createdByUserId);
+    TermSheetResponse createTermSheet(TermSheetDTO dto, UUID createdByUserId);
+    TermSheetResponse amendTermSheet(UUID parentId, TermSheetDTO dto, UUID createdByUserId);
 
 
-    TermSheet getTermSheetById(UUID termSheetId);
-    List<TermSheet> getAllVersions(UUID parentId);       // fetch version history
-    TermSheet getLatestVersion(UUID parentId);           // current “active” sheet
+    TermSheetResponse getTermSheetById(UUID termSheetId);
+    List<TermSheetResponse> getAllVersions(UUID parentId);       // fetch version history
+    TermSheetResponse getLatestVersion(UUID parentId);           // current “active” sheet
 
 
-    TermSheet updateTermSheet(UUID termSheetId, TermSheetDTO dto);
+    TermSheetResponse updateTermSheet(UUID termSheetId, TermSheetDTO dto);
     void signTermSheet(UUID termSheetId, UUID signedByUserId);
 
 
@@ -25,7 +25,7 @@ public interface ITermSheetService {
     void markAsLatest(UUID termSheetId); // ensure only one version is latest
 
 
-    List<TermSheet> findByDeal(UUID dealId);
-    List<TermSheet> findByTranche(UUID trancheId);
-    List<TermSheet> findBySME(UUID smeId);
+    List<TermSheetResponse> findByDeal(UUID dealId);
+    List<TermSheetResponse> findByTranche(UUID trancheId);
+    List<TermSheetResponse> findBySME(UUID smeId);
 }

@@ -112,6 +112,9 @@ public class TermSheet {
 
     private Boolean isLatest;
 
+    @OneToOne
+    @JoinColumn(name = "signing_user")
+    private AppUser signedBy;
 
     public TermSheet() {
 
@@ -125,7 +128,6 @@ public class TermSheet {
         this.createdAt = Timestamp.from(Instant.now());
         this.updatedAt = Timestamp.from(Instant.now());
         this.deleteYn = DeleteYn.N;
-        this.parent = parent == null ? this : parent;
     }
 
     @PreUpdate
@@ -133,34 +135,7 @@ public class TermSheet {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public TermSheet(UUID termSheetId,
-                     Deal dealId,
-                     Tranche trancheId,
-                     SME smeId,
-                     BigDecimal loanAmount,
-                     Double interestRate,
-                     LocalDate maturityDate,
-                     AmortizationStructure amortizationStructure,
-                     Boolean prepaymentOption,
-                     Map<String, LocalDate> offeringPeriod,
-                     Map<String, List<String>> guarantees,
-                     Map<String, List<String>> collateral,
-                     Seniority seniority,
-                     Map<String, List<String>> covenants,
-                     Map<String, List<String>> eventsOfDefault,
-                     Double defaultRate,
-                     Map<String, String> gracePeriods,
-                     GoverningLaw governingLaw,
-                     TermSheetStatus sheetStatus,
-                     Integer sheetVersion,
-                     Timestamp createdAt,
-                     Timestamp updatedAt,
-                     Timestamp signedAt,
-                     AppUser createdBy,
-                     DeleteYn deleteYn,
-                     List<ConditionsPrecedent> conditionsPrecedent,
-                     TermSheet parent,
-                     Boolean isLatest) {
+    public TermSheet(UUID termSheetId, Deal dealId, Tranche trancheId, SME smeId, BigDecimal loanAmount, Double interestRate, LocalDate maturityDate, AmortizationStructure amortizationStructure, Boolean prepaymentOption, Map<String, LocalDate> offeringPeriod, Map<String, List<String>> guarantees, Map<String, List<String>> collateral, Seniority seniority, Map<String, List<String>> covenants, Map<String, List<String>> eventsOfDefault, Double defaultRate, Map<String, String> gracePeriods, GoverningLaw governingLaw, TermSheetStatus sheetStatus, Integer sheetVersion, Timestamp createdAt, Timestamp updatedAt, Timestamp signedAt, AppUser createdBy, DeleteYn deleteYn, List<ConditionsPrecedent> conditionsPrecedent, TermSheet parent, Boolean isLatest, AppUser signedBy) {
         this.termSheetId = termSheetId;
         this.dealId = dealId;
         this.trancheId = trancheId;
@@ -189,8 +164,8 @@ public class TermSheet {
         this.conditionsPrecedent = conditionsPrecedent;
         this.parent = parent;
         this.isLatest = isLatest;
+        this.signedBy = signedBy;
     }
-
 
     public List<ConditionsPrecedent> getConditionsPrecedent() {
         return conditionsPrecedent;
@@ -414,5 +389,21 @@ public class TermSheet {
 
     public void setDeleteYn(DeleteYn deleteYn) {
         this.deleteYn = deleteYn;
+    }
+
+    public TermSheet getParent() {
+        return parent;
+    }
+
+    public void setParent(TermSheet parent) {
+        this.parent = parent;
+    }
+
+    public AppUser getSignedBy() {
+        return signedBy;
+    }
+
+    public void setSignedBy(AppUser signedBy) {
+        this.signedBy = signedBy;
     }
 }
