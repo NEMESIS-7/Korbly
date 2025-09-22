@@ -65,7 +65,7 @@ public class SyndicationService implements ISyndicationService{
     @Transactional
     public DealDTO createDeal(DealDTO dealDTO, AppUser createdBy) {
         SME smeInvolved = smeRepository.findSMEBySmeId(dealDTO.smeInvolved())
-                .orElseThrow(SMENotFound::new);
+                .orElseThrow(() -> new SMENotFound("SME account with ID: " + dealDTO.smeInvolved() + " not found."));
         Deal newDeal = Deal.builder()
                 .dealTitle(dealDTO.dealTitle())
                 .dealDescription(dealDTO.dealDescription())
@@ -121,7 +121,7 @@ public class SyndicationService implements ISyndicationService{
                 .orElseThrow(DealNotFound::new);
 
         AppUser createdBy = appUserRepository.findById(createdByUserId)
-                .orElseThrow(UserNotFound::new);
+                .orElseThrow(() -> new UserNotFound("User with ID: " + createdByUserId + " not found."));
         if (deal.getDealStatus().equals(DealStatus.CLOSED)||!deal.getDealStatus().equals(DealStatus.OPEN)){
             throw new InvalidDealUpdate();
         }
@@ -286,7 +286,7 @@ public class SyndicationService implements ISyndicationService{
         Allocation confirmedAllocation = allocationRepository.findById(allocationId)
                 .orElseThrow(AllocationNotFound::new);
         AppUser confirmedBy = appUserRepository.findById(adminId)
-                        .orElseThrow(UserNotFound::new);
+                        .orElseThrow(() -> new UserNotFound("User with ID: " + adminId + " not found."));
         confirmedAllocation.setAllocationStatus(AllocationStatus.CONFIRMED);
         confirmedAllocation.setConfirmedBy(confirmedBy);
         confirmedAllocation.setConfirmedAt(Timestamp.from(Instant.now()));

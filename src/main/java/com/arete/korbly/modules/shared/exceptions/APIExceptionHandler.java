@@ -25,7 +25,7 @@ public class APIExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 new APIException.APIError(
                         HttpStatus.NOT_FOUND,
-                        "Investor account does not exist",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -61,7 +61,7 @@ public class APIExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
-                        "Email is invalid",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -97,7 +97,7 @@ public class APIExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
-                        "Deals can only be updated when open or in draft",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -116,7 +116,7 @@ public class APIExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
-                        "Tranche amount exceed the amount of the deal left to be funded.",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -152,7 +152,7 @@ public class APIExceptionHandler {
                 HttpStatus.UNAUTHORIZED.value(),
                 new APIException.APIError(
                         HttpStatus.UNAUTHORIZED,
-                        "User entered a wrong OTP, request for a resend",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -206,7 +206,7 @@ public class APIExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 new APIException.APIError(
                         HttpStatus.NOT_FOUND,
-                        "SME not found, check the ID entered",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -224,7 +224,7 @@ public class APIExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,
-                        "User passed invalid financial data.",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
@@ -260,7 +260,7 @@ public class APIExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 new APIException.APIError(
                         HttpStatus.NOT_FOUND,
-                        "Deal with this ID does not exist",
+                        e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
                 request.getRequestId()
