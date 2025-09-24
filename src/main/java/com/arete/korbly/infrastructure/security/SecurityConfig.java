@@ -22,10 +22,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JWTAuthFilter jwtFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final AllRequestsLoggingFilter loggingFilter;
 
-    public SecurityConfig(JWTAuthFilter jwtFilter, CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(JWTAuthFilter jwtFilter, CustomUserDetailsService userDetailsService, AllRequestsLoggingFilter loggingFilter) {
         this.jwtFilter = jwtFilter;
         this.userDetailsService = userDetailsService;
+        this.loggingFilter = loggingFilter;
     }
 
     @Bean
@@ -42,6 +44,7 @@ public class SecurityConfig {
                         session -> session
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(loggingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

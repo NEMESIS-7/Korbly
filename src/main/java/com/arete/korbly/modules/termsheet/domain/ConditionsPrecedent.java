@@ -22,10 +22,10 @@ public class ConditionsPrecedent {
     @JoinColumn(name = "sheet_id")
     private TermSheet sheet;
 
-    private String title; //condition title or name
+    private String title;
 
     @Column(columnDefinition = "TEXT")
-    private String description; //details of the requirement
+    private String description;
 
     private Boolean required;
 
@@ -49,6 +49,9 @@ public class ConditionsPrecedent {
 
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
+
+    public ConditionsPrecedent() {
+    }
 
     public ConditionsPrecedent(UUID cpId,
                                TermSheet sheet,
@@ -78,34 +81,39 @@ public class ConditionsPrecedent {
         this.deleteYn = deleteYn;
     }
 
-    public ConditionsPrecedent() {
-    }
-
-    public ConditionsPrecedent(
-            TermSheet termSheet,
-            String title,
-            String description,
-            Boolean required,
-            CPStatus status,
-            String evidenceFileKey,
-            String note,
-            AppUser approvedBy,
-            Timestamp createdAt,
-            DeleteYn deleteYn
-    ) {
-    }
-
-    public ConditionsPrecedent(TermSheet termSheet,
+    public ConditionsPrecedent(TermSheet sheet,
                                String title,
                                String description,
                                Boolean required,
-                               CPStatus cpStatus,
+                               CPStatus status,
                                String evidenceFileKey,
                                String note,
                                AppUser approvedBy,
                                Timestamp createdAt,
                                String waiverReason,
                                DeleteYn deleteYn) {
+        this.sheet = sheet;
+        this.title = title;
+        this.description = description;
+        this.required = required;
+        this.status = status;
+        this.evidenceFileKey = evidenceFileKey;
+        this.note = note;
+        this.approvedBy = approvedBy;
+        this.createdAt = createdAt;
+        this.waiverReason = waiverReason;
+        this.deleteYn = deleteYn;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.deleteYn = DeleteYn.N;
+        this.createdAt = Timestamp.from(Instant.now());
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Timestamp.from(Instant.now());
     }
 
     public DeleteYn getDeleteYn() {
@@ -219,16 +227,4 @@ public class ConditionsPrecedent {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    @PrePersist
-    protected void onCreate() {
-        this.deleteYn = DeleteYn.N;
-        this.createdAt = Timestamp.from(Instant.now());
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = Timestamp.from(Instant.now());
-    }
-
 }
