@@ -23,6 +23,9 @@ import com.arete.korbly.modules.termsheet.exceptions.TermSheetNotFound;
 import com.arete.korbly.modules.termsheet.mappers.TermSheetMapper;
 import com.arete.korbly.modules.termsheet.persistence.ConditionsPrecedentRepository;
 import com.arete.korbly.modules.termsheet.persistence.TermSheetRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -40,6 +43,7 @@ public class TermSheetService implements ITermSheetService {
     private final SMERepository smeRepository;
     private final AppUserRepository appUserRepository;
     private final ConditionsPrecedentRepository conditionsPrecedentRepository;
+    private final TermsheetDocumentServiceImpl documentService;
 
 
     public TermSheetService(TermSheetRepository termSheetRepository,
@@ -48,7 +52,8 @@ public class TermSheetService implements ITermSheetService {
                             TrancheRepository trancheRepository,
                             SMERepository smeRepository,
                             AppUserRepository appUserRepository,
-                            ConditionsPrecedentRepository conditionsPrecedentRepository) {
+                            ConditionsPrecedentRepository conditionsPrecedentRepository,
+                            TermsheetDocumentServiceImpl documentService) {
         this.termSheetRepository = termSheetRepository;
         this.termSheetMapper = termSheetMapper;
         this.dealRepository = dealRepository;
@@ -56,6 +61,7 @@ public class TermSheetService implements ITermSheetService {
         this.smeRepository = smeRepository;
         this.appUserRepository = appUserRepository;
         this.conditionsPrecedentRepository = conditionsPrecedentRepository;
+        this.documentService = documentService;
     }
 
     @Override
@@ -85,25 +91,36 @@ public class TermSheetService implements ITermSheetService {
         newTermsheet.setCreatedBy(createdBy.get());
         newTermsheet.setLatest(Boolean.TRUE);
         newTermsheet.setSheetStatus(TermSheetStatus.DRAFT);
+        newTermsheet.setSeniority(tranche.get().getTrancheType());
+        newTermsheet.setDealId(deal.get());
+        newTermsheet.setSmeId(sme.get());
+        newTermsheet.setTrancheId(tranche.get());
+        newTermsheet.setParent(newTermsheet);
 
         if (newTermsheet.getSheetVersion() == 1 && newTermsheet.getParentId() == null) {
             newTermsheet.setParentId(newTermsheet.getParent());
         }
+
         return termSheetMapper.toResponse(
                 termSheetRepository.save(newTermsheet)
         );
     }
 
     @Override
-    public TermSheetResponse amendTermSheet(UUID parentId, TermSheetDTO dto, UUID createdByUserId) {
+    public TermSheetResponse amendTermSheet(UUID parentId, TermSheetDTO dto, UUID amendedBy) {
         TermSheet existingVersion = termSheetRepository.findLatestTermsheet(parentId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet with parent ID: " + parentId + " not found"));
         existingVersion.setLatest(Boolean.FALSE);
+
+        AppUser amender = appUserRepository.findById(amendedBy)
+                .orElseThrow(() -> new UserNotFound("User amending this sheet not found and hence action cannot continue."));
 
         TermSheet latestVersion = termSheetMapper.copyAndAmend(existingVersion, dto);
         latestVersion.setSheetVersion(existingVersion.getSheetVersion() + 1);
         latestVersion.setParentId(existingVersion.getParentId());
         latestVersion.setLatest(Boolean.TRUE);
+        latestVersion.setAmendedBy(amender);
+
 
         termSheetRepository.save(existingVersion);
 
@@ -122,12 +139,12 @@ public class TermSheetService implements ITermSheetService {
     }
 
     @Override
-    public List<TermSheetResponse> getAllVersions(UUID parentId) {
-        return termSheetRepository
-                .getAllVersions(parentId)
+    public Page<TermSheetResponse> getAllVersions(UUID parentId, Pageable pageable) {
+        List<TermSheetResponse> content = termSheetRepository.getAllVersions(parentId)
                 .stream()
                 .map(termSheetMapper::toResponse)
                 .toList();
+        return new PageImpl<>(content, pageable, content.size());
     }
 
     @Override
@@ -145,33 +162,28 @@ public class TermSheetService implements ITermSheetService {
     @Override
     public void signTermSheet(UUID termSheetId, UUID signedByUserId) {
 
-        try {
-            AppUser signingUser = appUserRepository.findById(signedByUserId)
-                    .orElseThrow(() -> new UserNotFound("User with ID: " + signedByUserId + " not found. Hence term sheet cannot be signed by this user."));
-            TermSheet sheetToSign = termSheetRepository.findById(termSheetId)
-                    .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + termSheetId + " not found."));
-            if (!sheetToSign.getSheetStatus().equals(TermSheetStatus.DRAFT)) {
-                throw new TermSheetNotFound("Term sheet with ID: " + termSheetId + " has been signed already.");
-            }
-            if (!sheetToSign.getLatest().equals(Boolean.TRUE)) {
-                throw new TermSheetNotFound("This is not the latest version of this term sheet hence it cannot be signed.");
-            }
-            sheetToSign.setSignedBy(signingUser);
-            sheetToSign.setSheetStatus(TermSheetStatus.EXECUTED);
-            sheetToSign.setSignedAt(Timestamp.from(Instant.now()));
-
-            if (sheetToSign.getConditionsPrecedent() == null || sheetToSign.getConditionsPrecedent().isEmpty()) {
-                sheetToSign.setConditionsPrecedent(generateDefaultCPs(sheetToSign));
-            }
-
-            termSheetRepository.save(sheetToSign);
-        }catch (Exception e){
-            e.printStackTrace();
+        AppUser signingUser = appUserRepository.findById(signedByUserId)
+                .orElseThrow(() -> new UserNotFound("User with ID: " + signedByUserId + " not found. Hence term sheet cannot be signed by this user."));
+        TermSheet sheetToSign = termSheetRepository.findById(termSheetId)
+                .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + termSheetId + " not found."));
+        if (!sheetToSign.getSheetStatus().equals(TermSheetStatus.DRAFT)) {
+            throw new TermSheetNotFound("Term sheet with ID: " + termSheetId + " has been signed already.");
         }
+        if (!sheetToSign.getLatest().equals(Boolean.TRUE)) {
+            throw new TermSheetNotFound("This is not the latest version of this term sheet hence it cannot be signed.");
+        }
+        sheetToSign.setSignedBy(signingUser);
+        sheetToSign.setSheetStatus(TermSheetStatus.EXECUTED);
+        sheetToSign.setSignedAt(Timestamp.from(Instant.now()));
+
+        if (sheetToSign.getConditionsPrecedent() == null || sheetToSign.getConditionsPrecedent().isEmpty()) {
+            sheetToSign.setConditionsPrecedent(generateDefaultCPs(sheetToSign));
+        }
+        termSheetRepository.save(sheetToSign);
     }
 
     private List<ConditionsPrecedent> generateDefaultCPs(TermSheet termSheet) {
-        List<ConditionsPrecedent> conditionsPrecedent =  List.of(
+        List<ConditionsPrecedent> conditionsPrecedent = List.of(
                 new ConditionsPrecedent(termSheet,
                         "Board Resolution",
                         "Board resolution authorizing the borrowing and execution of loan documents.",
@@ -235,29 +247,31 @@ public class TermSheetService implements ITermSheetService {
     }
 
     @Override
-    public List<TermSheetResponse> findByDeal(UUID dealId) {
-        return termSheetRepository
-                .findByDealID(dealId)
+    public Page<TermSheetResponse> findByDeal(UUID dealId, Pageable pageable) {
+        List<TermSheetResponse> content = termSheetRepository.findByDealID(dealId)
                 .stream()
                 .map(termSheetMapper::toResponse)
                 .toList();
+        return new PageImpl<>(content, pageable, content.size());
     }
 
     @Override
-    public List<TermSheetResponse> findByTranche(UUID trancheId) {
-        return termSheetRepository
+    public Page<TermSheetResponse> findByTranche(UUID trancheId, Pageable pageable) {
+        List<TermSheetResponse> content = termSheetRepository
                 .findByTrancheId(trancheId)
                 .stream()
                 .map(termSheetMapper::toResponse)
                 .toList();
+        return new PageImpl<>(content, pageable, content.size());
     }
 
     @Override
-    public List<TermSheetResponse> findBySME(UUID smeId) {
-        return termSheetRepository
+    public Page<TermSheetResponse> findBySME(UUID smeId, Pageable pageable) {
+        List<TermSheetResponse> content = termSheetRepository
                 .findBySmeId(smeId)
                 .stream()
                 .map(termSheetMapper::toResponse)
                 .toList();
+        return new PageImpl<>(content, pageable, content.size());
     }
 }

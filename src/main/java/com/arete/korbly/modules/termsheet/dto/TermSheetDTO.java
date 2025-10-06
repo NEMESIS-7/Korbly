@@ -1,4 +1,5 @@
 package com.arete.korbly.modules.termsheet.dto;
+import com.arete.korbly.modules.syndication.enums.TrancheType;
 import com.arete.korbly.modules.termsheet.enums.*;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 
@@ -22,7 +23,7 @@ public record TermSheetDTO(
         Map<String, LocalDate> offeringPeriod,
         Map<String, List<String>> guarantees,
         Map<String, List<String>> collateral,
-        Seniority seniority,
+        TrancheType seniority,
         Map<String, List<String>> covenants,
         Map<String, List<String>> eventsOfDefault,
         Double defaultRate,

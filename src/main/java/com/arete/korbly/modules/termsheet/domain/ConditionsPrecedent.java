@@ -41,6 +41,10 @@ public class ConditionsPrecedent {
     @JoinColumn(name = "approved_by_user_id")
     private AppUser approvedBy;
 
+    @OneToOne
+    @JoinColumn(name = "created_by_user_id")
+    private AppUser createdBy;
+
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -53,21 +57,20 @@ public class ConditionsPrecedent {
     public ConditionsPrecedent() {
     }
 
-    public ConditionsPrecedent(UUID cpId,
-                               TermSheet sheet,
-                               String title,
-                               String description,
-                               Boolean required,
-                               CPStatus status,
-                               String evidenceFileKey,
-                               String note,
-                               AppUser approvedBy,
-                               Timestamp createdAt,
-                               Timestamp updatedAt,
-                               String waiverReason,
-                               DeleteYn deleteYn) {
-        this.cpId = cpId;
-        this.sheet = sheet;
+    public ConditionsPrecedent(
+            TermSheet termSheet,
+            String title,
+            String description,
+            Boolean required,
+            CPStatus status,
+            String evidenceFileKey,
+            String note,
+            AppUser approvedBy,
+            Timestamp createdAt,
+            Timestamp updatedAt,
+            DeleteYn deleteYn
+    ){
+        sheet = termSheet;
         this.title = title;
         this.description = description;
         this.required = required;
@@ -77,21 +80,11 @@ public class ConditionsPrecedent {
         this.approvedBy = approvedBy;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.waiverReason = waiverReason;
         this.deleteYn = deleteYn;
     }
 
-    public ConditionsPrecedent(TermSheet sheet,
-                               String title,
-                               String description,
-                               Boolean required,
-                               CPStatus status,
-                               String evidenceFileKey,
-                               String note,
-                               AppUser approvedBy,
-                               Timestamp createdAt,
-                               String waiverReason,
-                               DeleteYn deleteYn) {
+    public ConditionsPrecedent(UUID cpId, TermSheet sheet, String title, String description, Boolean required, CPStatus status, String evidenceFileKey, String note, AppUser approvedBy, AppUser createdBy, Timestamp createdAt, Timestamp updatedAt, String waiverReason, DeleteYn deleteYn) {
+        this.cpId = cpId;
         this.sheet = sheet;
         this.title = title;
         this.description = description;
@@ -100,7 +93,9 @@ public class ConditionsPrecedent {
         this.evidenceFileKey = evidenceFileKey;
         this.note = note;
         this.approvedBy = approvedBy;
+        this.createdBy = createdBy;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.waiverReason = waiverReason;
         this.deleteYn = deleteYn;
     }
@@ -134,6 +129,14 @@ public class ConditionsPrecedent {
 
     public TermSheet getSheetId() {
         return sheet;
+    }
+
+    public AppUser getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(AppUser createdBy) {
+        this.createdBy = createdBy;
     }
 
     public void setSheetId(TermSheet sheet) {

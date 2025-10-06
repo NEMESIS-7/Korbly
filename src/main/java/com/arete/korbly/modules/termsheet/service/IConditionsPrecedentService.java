@@ -1,8 +1,10 @@
 package com.arete.korbly.modules.termsheet.service;
 
-import com.arete.korbly.modules.termsheet.domain.ConditionsPrecedent;
+import com.arete.korbly.modules.termsheet.dto.CPRequest;
+import com.arete.korbly.modules.termsheet.dto.CPResponse;
 import com.arete.korbly.modules.termsheet.dto.ConditionPrecedentDTO;
 import com.arete.korbly.modules.termsheet.enums.CPStatus;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,18 +12,18 @@ import java.util.UUID;
 public interface IConditionsPrecedentService {
 
 
-    ConditionsPrecedent addCondition(UUID sheetId, ConditionPrecedentDTO dto);
-    ConditionsPrecedent updateCondition(UUID cpId, ConditionPrecedentDTO dto);
-    void updateStatus(UUID cpId, CPStatus status, UUID approvedByUserId);
+    CPResponse addCondition(UUID sheetId, CPRequest request, HttpServletRequest servletRequest);
+    CPResponse updateCondition(UUID cpId, ConditionPrecedentDTO dto, HttpServletRequest servletRequest);
+    void updateStatus(UUID cpId, CPStatus status, UUID approvedByUserId, HttpServletRequest request);
 
 
-    ConditionsPrecedent getCondition(UUID cpId);
-    List<ConditionsPrecedent> getConditionsForSheet(UUID sheetId);
+    CPResponse getCondition(UUID cpId, HttpServletRequest request);
+    List<CPResponse> getConditionsForSheet(UUID sheetId, HttpServletRequest request);
 
 
-    void waiveCondition(UUID cpId, String waiverReason, UUID approvedByUserId);
-    void attachEvidence(UUID cpId, String evidenceFileKey);
+    void waiveCondition(UUID cpId, String waiverReason, UUID approvedByUserId, HttpServletRequest request);
+    void attachEvidence(UUID cpId, String evidenceFileKey, HttpServletRequest request);
 
 
-    void markAsDeleted(UUID cpId);
+    void markAsDeleted(UUID cpId, HttpServletRequest request);
 }

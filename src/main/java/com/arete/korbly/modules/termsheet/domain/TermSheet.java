@@ -5,9 +5,9 @@ import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.sme.domain.SME;
 import com.arete.korbly.modules.syndication.domain.Deal;
 import com.arete.korbly.modules.syndication.domain.Tranche;
+import com.arete.korbly.modules.syndication.enums.TrancheType;
 import com.arete.korbly.modules.termsheet.enums.AmortizationStructure;
 import com.arete.korbly.modules.termsheet.enums.GoverningLaw;
-import com.arete.korbly.modules.termsheet.enums.Seniority;
 import com.arete.korbly.modules.termsheet.enums.TermSheetStatus;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -66,7 +66,7 @@ public class TermSheet {
     private Map<String, List<String>> collateral = new HashMap<>();
 
     @Enumerated(EnumType.STRING)
-    private Seniority seniority;
+    private TrancheType seniority;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
@@ -99,6 +99,10 @@ public class TermSheet {
     @OneToOne
     @JoinColumn(name = "app_user_id")
     private AppUser createdBy;
+
+    @OneToOne
+    @JoinColumn(name = "amended_by")
+    private AppUser amendedBy;
 
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
@@ -135,7 +139,7 @@ public class TermSheet {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public TermSheet(UUID termSheetId, Deal dealId, Tranche trancheId, SME smeId, BigDecimal loanAmount, Double interestRate, LocalDate maturityDate, AmortizationStructure amortizationStructure, Boolean prepaymentOption, Map<String, LocalDate> offeringPeriod, Map<String, List<String>> guarantees, Map<String, List<String>> collateral, Seniority seniority, Map<String, List<String>> covenants, Map<String, List<String>> eventsOfDefault, Double defaultRate, Map<String, String> gracePeriods, GoverningLaw governingLaw, TermSheetStatus sheetStatus, Integer sheetVersion, Timestamp createdAt, Timestamp updatedAt, Timestamp signedAt, AppUser createdBy, DeleteYn deleteYn, List<ConditionsPrecedent> conditionsPrecedent, TermSheet parent, Boolean isLatest, AppUser signedBy) {
+    public TermSheet(UUID termSheetId, Deal dealId, Tranche trancheId, SME smeId, BigDecimal loanAmount, Double interestRate, LocalDate maturityDate, AmortizationStructure amortizationStructure, Boolean prepaymentOption, Map<String, LocalDate> offeringPeriod, Map<String, List<String>> guarantees, Map<String, List<String>> collateral, TrancheType seniority, Map<String, List<String>> covenants, Map<String, List<String>> eventsOfDefault, Double defaultRate, Map<String, String> gracePeriods, GoverningLaw governingLaw, TermSheetStatus sheetStatus, Integer sheetVersion, Timestamp createdAt, Timestamp updatedAt, Timestamp signedAt, AppUser createdBy, AppUser amendedBy, DeleteYn deleteYn, List<ConditionsPrecedent> conditionsPrecedent, TermSheet parent, Boolean isLatest, AppUser signedBy) {
         this.termSheetId = termSheetId;
         this.dealId = dealId;
         this.trancheId = trancheId;
@@ -160,6 +164,7 @@ public class TermSheet {
         this.updatedAt = updatedAt;
         this.signedAt = signedAt;
         this.createdBy = createdBy;
+        this.amendedBy = amendedBy;
         this.deleteYn = deleteYn;
         this.conditionsPrecedent = conditionsPrecedent;
         this.parent = parent;
@@ -287,11 +292,11 @@ public class TermSheet {
         this.collateral = collateral;
     }
 
-    public Seniority getSeniority() {
+    public TrancheType getSeniority() {
         return seniority;
     }
 
-    public void setSeniority(Seniority seniority) {
+    public void setSeniority(TrancheType seniority) {
         this.seniority = seniority;
     }
 
@@ -405,5 +410,13 @@ public class TermSheet {
 
     public void setSignedBy(AppUser signedBy) {
         this.signedBy = signedBy;
+    }
+
+    public AppUser getAmendedBy() {
+        return amendedBy;
+    }
+
+    public void setAmendedBy(AppUser amendedBy) {
+        this.amendedBy = amendedBy;
     }
 }

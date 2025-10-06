@@ -1,9 +1,9 @@
 package com.arete.korbly.modules.termsheet.dto;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.syndication.enums.TrancheType;
 import com.arete.korbly.modules.termsheet.enums.AmortizationStructure;
 import com.arete.korbly.modules.termsheet.enums.GoverningLaw;
-import com.arete.korbly.modules.termsheet.enums.Seniority;
 import com.arete.korbly.modules.termsheet.enums.TermSheetStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +39,7 @@ public class TermSheetResponse {
     private Map<String, List<String>> guarantees;
     private Map<String, List<String>> collateral;
 
-    private Seniority seniority;
+    private TrancheType seniority;
     private Map<String, List<String>> covenants;
     private Map<String, List<String>> eventsOfDefault;
 

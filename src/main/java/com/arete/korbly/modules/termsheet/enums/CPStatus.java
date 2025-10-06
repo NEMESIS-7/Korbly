@@ -4,7 +4,8 @@ public enum CPStatus {
     PENDING("Status is pending"),
     RECEIVED("CP received"),
     APPROVED("CP has been approved"),
-    WAIVED("CP has been waived");
+    WAIVED("CP has been waived"),
+    REJECTED("Rejected");
 
     private final String value;
 

@@ -2,6 +2,8 @@ package com.arete.korbly.modules.shared.exceptions;
 
 
 import com.arete.korbly.modules.syndication.exceptions.*;
+import com.arete.korbly.modules.termsheet.exceptions.InvalidUpdate;
+import com.arete.korbly.modules.termsheet.exceptions.TermSheetNotFound;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
@@ -221,6 +223,42 @@ public class APIExceptionHandler {
     public ResponseEntity<?> handleInvalidFinancials(InvalidFinancials e, HttpServletRequest request){
         APIException apiException = new APIException(
                 "Invalid financial data",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TermSheetNotFound.class)
+    public ResponseEntity<?> handleTermSheetNotFound(TermSheetNotFound e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "error",
+                HttpStatus.BAD_REQUEST.value(),
+                new APIException.APIError(
+                        HttpStatus.BAD_REQUEST,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidUpdate.class)
+    public ResponseEntity<?> handleInvalidUpdate(InvalidUpdate e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "error",
                 HttpStatus.BAD_REQUEST.value(),
                 new APIException.APIError(
                         HttpStatus.BAD_REQUEST,

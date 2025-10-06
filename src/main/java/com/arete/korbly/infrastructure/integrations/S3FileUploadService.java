@@ -9,6 +9,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @Service
@@ -38,5 +39,16 @@ public class S3FileUploadService {
                 file.getSize(),
                 result.getVersionId()
         );
+    }
+
+    public String uploadFile(String key, byte[] file) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.length);
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(file);
+
+        amazonS3.putObject(bucketName, key, inputStream, metadata);
+
+        return key;
     }
 }
