@@ -42,6 +42,14 @@ public class ConditionsPrecedent {
     private AppUser approvedBy;
 
     @OneToOne
+    @JoinColumn(name = "updated_by_user_id")
+    private AppUser updatedBy;
+
+    @OneToOne
+    @JoinColumn(name = "waived_by_user_id")
+    private AppUser waivedBy;
+
+    @OneToOne
     @JoinColumn(name = "created_by_user_id")
     private AppUser createdBy;
 
@@ -229,5 +237,21 @@ public class ConditionsPrecedent {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public AppUser getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(AppUser updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public AppUser getWaivedBy() {
+        return waivedBy;
+    }
+
+    public void setWaivedBy(AppUser waivedBy) {
+        this.waivedBy = waivedBy;
     }
 }

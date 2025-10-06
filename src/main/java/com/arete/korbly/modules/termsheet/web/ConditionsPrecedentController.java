@@ -10,7 +10,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,10 +34,11 @@ public class ConditionsPrecedentController {
     @PostMapping("/sheet/{sheetId}")
     public ResponseEntity<CPResponse> addCondition(
             @PathVariable UUID sheetId,
-            @Valid @RequestBody CPRequest request,
-            HttpServletRequest httpRequest) {
+            @Valid @RequestPart(name = "request") CPRequest request,
+            @RequestPart(name = "evidence") MultipartFile evidenceFile,
+            HttpServletRequest httpRequest) throws IOException {
 
-        CPResponse response = conditionsPrecedentService.addCondition(sheetId, request, httpRequest);
+        CPResponse response = conditionsPrecedentService.addCondition(sheetId, request, evidenceFile,httpRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -116,10 +119,10 @@ public class ConditionsPrecedentController {
     @PatchMapping("/{cpId}/evidence")
     public ResponseEntity<Map<String, String>> attachEvidence(
             @PathVariable UUID cpId,
-            @RequestParam String evidenceFileKey,
-            HttpServletRequest httpRequest) {
+            @RequestPart(name = "evidenceFile")MultipartFile file,
+            HttpServletRequest httpRequest) throws IOException {
 
-        conditionsPrecedentService.attachEvidence(cpId, evidenceFileKey, httpRequest);
+        conditionsPrecedentService.attachEvidence(cpId, file, httpRequest);
         return new ResponseEntity<>(Map.of("message", "Evidence attached successfully"), HttpStatus.OK);
     }
 
