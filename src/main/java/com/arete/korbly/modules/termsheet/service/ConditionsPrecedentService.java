@@ -78,15 +78,16 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
 
         if (evidenceFile != null) {
-            String filePath = "conditions-precedent/" + newCondition.getCpId() + "/evidence/" + dto.getTitle();
+            String filePath = "conditions-precedent/" + sheetId + "/evidence/" + dto.getTitle();
             UploadFileResponse fileResponse = fileUploadService.uploadFile(filePath, evidenceFile);
             newCondition.setEvidenceFileKey(fileResponse.key());
+        } else {
+            newCondition.setEvidenceFileKey(null);
         }
 
         // Set required fields
         newCondition.setSheet(termSheet);
         newCondition.setStatus(CPStatus.PENDING);
-        newCondition.setEvidenceFileKey(null);
         newCondition.setCreatedBy(currentUser);
         newCondition.setWaiverReason(null);
 

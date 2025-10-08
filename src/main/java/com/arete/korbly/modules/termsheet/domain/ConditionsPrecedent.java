@@ -91,6 +91,25 @@ public class ConditionsPrecedent {
         this.deleteYn = deleteYn;
     }
 
+    public ConditionsPrecedent(UUID cpId, TermSheet sheet, String title, String description, Boolean required, CPStatus status, String evidenceFileKey, String note, AppUser approvedBy, AppUser updatedBy, AppUser waivedBy, AppUser createdBy, Timestamp createdAt, Timestamp updatedAt, String waiverReason, DeleteYn deleteYn) {
+        this.cpId = cpId;
+        this.sheet = sheet;
+        this.title = title;
+        this.description = description;
+        this.required = required;
+        this.status = status;
+        this.evidenceFileKey = evidenceFileKey;
+        this.note = note;
+        this.approvedBy = approvedBy;
+        this.updatedBy = updatedBy;
+        this.waivedBy = waivedBy;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.waiverReason = waiverReason;
+        this.deleteYn = deleteYn;
+    }
+
     public ConditionsPrecedent(UUID cpId, TermSheet sheet, String title, String description, Boolean required, CPStatus status, String evidenceFileKey, String note, AppUser approvedBy, AppUser createdBy, Timestamp createdAt, Timestamp updatedAt, String waiverReason, DeleteYn deleteYn) {
         this.cpId = cpId;
         this.sheet = sheet;

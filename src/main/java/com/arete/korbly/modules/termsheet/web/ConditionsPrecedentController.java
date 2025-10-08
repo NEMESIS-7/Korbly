@@ -5,6 +5,7 @@ import com.arete.korbly.modules.termsheet.dto.CPResponse;
 import com.arete.korbly.modules.termsheet.dto.ConditionPrecedentDTO;
 import com.arete.korbly.modules.termsheet.enums.CPStatus;
 import com.arete.korbly.modules.termsheet.service.IConditionsPrecedentService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,9 +23,11 @@ import java.util.UUID;
 public class ConditionsPrecedentController {
 
     private final IConditionsPrecedentService conditionsPrecedentService;
+    private final ObjectMapper objectMapper;
 
-    public ConditionsPrecedentController(IConditionsPrecedentService conditionsPrecedentService) {
+    public ConditionsPrecedentController(IConditionsPrecedentService conditionsPrecedentService, ObjectMapper objectMapper) {
         this.conditionsPrecedentService = conditionsPrecedentService;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -34,11 +37,11 @@ public class ConditionsPrecedentController {
     @PostMapping("/sheet/{sheetId}")
     public ResponseEntity<CPResponse> addCondition(
             @PathVariable UUID sheetId,
-            @Valid @RequestPart(name = "request") CPRequest request,
+            @Valid @RequestPart(name = "request") String request,
             @RequestPart(name = "evidence") MultipartFile evidenceFile,
             HttpServletRequest httpRequest) throws IOException {
-
-        CPResponse response = conditionsPrecedentService.addCondition(sheetId, request, evidenceFile,httpRequest);
+        CPRequest cpRequest = objectMapper.readValue(request, CPRequest.class);
+        CPResponse response = conditionsPrecedentService.addCondition(sheetId, cpRequest, evidenceFile,httpRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
