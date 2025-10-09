@@ -16,6 +16,7 @@ import com.arete.korbly.modules.shared.dto.*;
 import com.arete.korbly.modules.shared.enums.UploadFileResponse;
 import com.arete.korbly.modules.shared.enums.UserType;
 import com.arete.korbly.modules.shared.exceptions.InvalidOTP;
+import com.arete.korbly.modules.shared.exceptions.SMENotFound;
 import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import com.arete.korbly.modules.sme.domain.SME;
@@ -201,7 +202,7 @@ public class AuthService {
     public InvestorDocumentUrls getInvestorDocumentUrls(UUID investorId, int expirationMinutes) {
         Optional<Investor> investorOpt = investorRepository.findById(investorId);
         if (investorOpt.isEmpty()) {
-            throw new UserNotFound();
+            throw new UserNotFound("Investor account with ID: " + investorId + " not found.");
         }
 
         Investor investor = investorOpt.get();
@@ -220,7 +221,7 @@ public class AuthService {
     public SMEDocumentUrls getSMEDocumentUrls(UUID smeId, int expirationMinutes) {
         Optional<SME> smeOpt = smeRepository.findById(smeId);
         if (smeOpt.isEmpty()) {
-            throw new UserNotFound();
+            throw new UserNotFound("SME with ID: " + smeId + " not found");
         }
 
         SME sme = smeOpt.get();
@@ -237,8 +238,7 @@ public class AuthService {
     public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response){
         if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
             AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
-                    .orElseThrow(UserNotFound::new);
-
+                    .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
             String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
             user.setIsVerified(true);
 
@@ -264,7 +264,7 @@ public class AuthService {
     public LoginResponse loginResponse(VerificationRequest request){
         if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
             AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
-                    .orElseThrow(UserNotFound::new);
+                    .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found"));
 
             String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
             user.setIsVerified(true);
@@ -285,7 +285,7 @@ public class AuthService {
     public AppUser verifyUser(VerifyUser verifyUser){
         Optional<AppUser> user = appUserRepository.findByPrimaryContactEmail(verifyUser.primaryContactEmail());
         if (user.isEmpty()){
-            throw new UserNotFound();
+            throw new UserNotFound("User with email: " + verifyUser.primaryContactEmail() + " not found.");
         }else{
             AppUser appUser = user.get();
             appUser.setIsVerified(true);
@@ -309,7 +309,7 @@ public class AuthService {
             context.setVariable("otp", otp);
             emailService.sendEmail(request, "LoginTemplate", context);
         }else{
-            throw new UserNotFound();
+            throw new UserNotFound("User with email: " + user.primaryContactEmail() + " not found.");
         }
     }
 
@@ -332,7 +332,7 @@ public class AuthService {
     public String getInvestorDocumentByType(UUID investorId, String documentType, int expirationMinutes) {
         Optional<Investor> investorOpt = investorRepository.findById(investorId);
         if (investorOpt.isEmpty()) {
-            throw new UserNotFound();
+            throw new UserNotFound("Investor with ID: " + investorId + " not found.");
         }
 
         Investor investor = investorOpt.get();
@@ -345,7 +345,7 @@ public class AuthService {
     public String getSMEDocumentByType(UUID smeId, String documentType, int expirationMinutes) {
         Optional<SME> smeOpt = smeRepository.findById(smeId);
         if (smeOpt.isEmpty()) {
-            throw new UserNotFound();
+            throw new SMENotFound("SME with ID: " + smeId + " not found.");
         }
 
         SME sme = smeOpt.get();

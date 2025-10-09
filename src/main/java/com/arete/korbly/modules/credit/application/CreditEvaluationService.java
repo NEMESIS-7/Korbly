@@ -48,7 +48,7 @@ public class CreditEvaluationService {
     public CreditMemoDTO evaluateAndSave(UUID smeId, FinancialsDTO financialsDTO) {
         try {
             SME sme = smeRepository.findById(smeId)
-                    .orElseThrow(SMENotFound::new);
+                    .orElseThrow(() -> new SMENotFound("SME account with ID: " + smeId + " not found."));
 
             BigDecimal altmanScore = altmanZScoreCalculator.calculate(financialsDTO);
             BigDecimal ohlsonScore = ohlsonScoreCalculator.calculate(financialsDTO);
@@ -72,7 +72,7 @@ public class CreditEvaluationService {
             return creditDTOMapper
                     .creditMemoEntityToCreditMemoDTO(creditMemoRepository.save(memo));
         } catch (NullPointerException e) {
-            throw new InvalidFinancials();
+            throw new InvalidFinancials("User entered invalid financial data.");
         }
     }
 

@@ -45,7 +45,7 @@ public class SyndicationController {
     public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO){
         UUID createdById = jwtService.extractAppUserId(httpServletRequest);
         AppUser createdBy = appUserRepository.findAppUserById(createdById)
-                .orElseThrow(UserNotFound::new);
+                .orElseThrow(() -> new UserNotFound("User with ID: " + createdById + " not found."));
         return new ResponseEntity<>(syndicationService.createDeal(dealDTO, createdBy), HttpStatus.CREATED);
     }
 
