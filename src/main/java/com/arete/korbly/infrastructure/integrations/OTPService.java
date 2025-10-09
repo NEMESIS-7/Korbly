@@ -11,6 +11,8 @@ public class OTPService {
     private final StringRedisTemplate stringRedisTemplate;
     private static final int EXPIRE_TIME_MINUTES = 15;
 
+    private static final SecureRandom random = new SecureRandom();
+
     public OTPService(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
     }
@@ -49,8 +51,7 @@ public class OTPService {
     }
 
     private String generateOTP() {
-        SecureRandom random = new SecureRandom();
-        int otp = random.nextInt(100000, 999999);
+        int otp = random.nextInt(1000, 9000);
         return String.valueOf(otp);
     }
 }

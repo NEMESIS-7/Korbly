@@ -1,7 +1,7 @@
 package com.arete.korbly.infrastructure.security;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.exceptions.InvestorNotFound;
+import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (appUser.isPresent()){
             return new UserPrincipal(getAuthorities(appUser.get()), appUser.get());
         }
-        throw new InvestorNotFound();
+        throw new UserNotFound("User account not found.");
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(AppUser user){

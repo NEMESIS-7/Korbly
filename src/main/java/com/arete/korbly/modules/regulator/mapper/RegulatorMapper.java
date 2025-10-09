@@ -17,7 +17,6 @@ public interface RegulatorMapper {
 
     default UUID mapAppUserId(AppUser appUser){
         return appUser != null ? appUser.getUserId() : null;
-
     }
 
     default AppUser mapAppUser(UUID appUser){
