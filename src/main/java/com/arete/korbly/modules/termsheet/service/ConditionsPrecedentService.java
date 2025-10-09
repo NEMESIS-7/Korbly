@@ -5,6 +5,7 @@ import com.arete.korbly.infrastructure.security.JWTService;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.shared.enums.UploadFileResponse;
+import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import com.arete.korbly.modules.termsheet.domain.ConditionsPrecedent;
 import com.arete.korbly.modules.termsheet.domain.TermSheet;
@@ -12,6 +13,7 @@ import com.arete.korbly.modules.termsheet.dto.CPRequest;
 import com.arete.korbly.modules.termsheet.dto.CPResponse;
 import com.arete.korbly.modules.termsheet.dto.ConditionPrecedentDTO;
 import com.arete.korbly.modules.termsheet.enums.CPStatus;
+import com.arete.korbly.modules.termsheet.exceptions.ConflictException;
 import com.arete.korbly.modules.termsheet.exceptions.InvalidUpdate;
 import com.arete.korbly.modules.termsheet.exceptions.TermSheetNotFound;
 import com.arete.korbly.modules.termsheet.mappers.ConditionPrecedentMapper;
@@ -71,14 +73,18 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
         // Extract current user
         UUID currentUserId = extractAppUserId(request);
         AppUser currentUser = getAppUser(currentUserId)
-                .orElseThrow(() -> new InvalidUpdate("User not found"));
+                .orElseThrow(() -> new UserNotFound("User not found"));
+
+        if (conditionsPrecedentRepository.existsBySheetAndCodeAndDeleteYn(termSheet, dto.cpCode(), DeleteYn.N)) {
+            throw new ConflictException("CP already exists for this term sheet");
+        }
 
         // Map CPRequest to entity
         ConditionsPrecedent newCondition = conditionPrecedentMapper.toEntity(dto);
 
 
         if (evidenceFile != null) {
-            String filePath = "conditions-precedent/" + sheetId + "/evidence/" + dto.getTitle();
+            String filePath = "conditions-precedent/" + sheetId + "/evidence/" + dto.title().replace(" ", "_");
             UploadFileResponse fileResponse = fileUploadService.uploadFile(filePath, evidenceFile);
             newCondition.setEvidenceFileKey(fileResponse.key());
         } else {

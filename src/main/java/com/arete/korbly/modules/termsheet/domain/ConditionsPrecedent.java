@@ -2,6 +2,7 @@ package com.arete.korbly.modules.termsheet.domain;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
+import com.arete.korbly.modules.termsheet.enums.CPCode;
 import com.arete.korbly.modules.termsheet.enums.CPStatus;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -37,19 +38,19 @@ public class ConditionsPrecedent {
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "approved_by_user_id")
     private AppUser approvedBy;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "updated_by_user_id")
     private AppUser updatedBy;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "waived_by_user_id")
     private AppUser waivedBy;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "created_by_user_id")
     private AppUser createdBy;
 
@@ -61,6 +62,13 @@ public class ConditionsPrecedent {
 
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
+
+//    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private CPCode code;
+
+    @Version
+    private Long version;
 
     public ConditionsPrecedent() {
     }
@@ -76,7 +84,8 @@ public class ConditionsPrecedent {
             AppUser approvedBy,
             Timestamp createdAt,
             Timestamp updatedAt,
-            DeleteYn deleteYn
+            DeleteYn deleteYn,
+            CPCode code
     ){
         sheet = termSheet;
         this.title = title;
@@ -89,6 +98,28 @@ public class ConditionsPrecedent {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deleteYn = deleteYn;
+        this.code = code;
+    }
+
+    public ConditionsPrecedent(UUID cpId, TermSheet sheet, String title, String description, Boolean required, CPStatus status, String evidenceFileKey, String note, AppUser approvedBy, AppUser updatedBy, AppUser waivedBy, AppUser createdBy, Timestamp createdAt, Timestamp updatedAt, String waiverReason, DeleteYn deleteYn, CPCode code, Long version) {
+        this.cpId = cpId;
+        this.sheet = sheet;
+        this.title = title;
+        this.description = description;
+        this.required = required;
+        this.status = status;
+        this.evidenceFileKey = evidenceFileKey;
+        this.note = note;
+        this.approvedBy = approvedBy;
+        this.updatedBy = updatedBy;
+        this.waivedBy = waivedBy;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.waiverReason = waiverReason;
+        this.deleteYn = deleteYn;
+        this.code = code;
+        this.version = version;
     }
 
     public ConditionsPrecedent(UUID cpId, TermSheet sheet, String title, String description, Boolean required, CPStatus status, String evidenceFileKey, String note, AppUser approvedBy, AppUser updatedBy, AppUser waivedBy, AppUser createdBy, Timestamp createdAt, Timestamp updatedAt, String waiverReason, DeleteYn deleteYn) {
@@ -272,5 +303,21 @@ public class ConditionsPrecedent {
 
     public void setWaivedBy(AppUser waivedBy) {
         this.waivedBy = waivedBy;
+    }
+
+    public CPCode getCode() {
+        return code;
+    }
+
+    public void setCode(CPCode code) {
+        this.code = code;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

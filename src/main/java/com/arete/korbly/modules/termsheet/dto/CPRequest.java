@@ -1,15 +1,12 @@
 package com.arete.korbly.modules.termsheet.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.arete.korbly.modules.termsheet.enums.CPCode;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CPRequest {
-    private String title;
-    private String description;
-    private Boolean required;
-    private String note;
-}
+public record CPRequest(
+        @NotNull CPCode cpCode,
+        @NotBlank String title,
+        @NotBlank String description,
+        @NotNull Boolean required
+) {}

@@ -1,4 +1,4 @@
-package com.arete.korbly.modules.termsheet;
+package com.arete.korbly.modules.termsheet.util;
 
 import com.arete.korbly.modules.termsheet.domain.ConditionsPrecedent;
 import com.arete.korbly.modules.termsheet.domain.TermSheet;

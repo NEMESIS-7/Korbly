@@ -3,6 +3,7 @@ package com.arete.korbly.modules.termsheet.persistence;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.termsheet.domain.ConditionsPrecedent;
 import com.arete.korbly.modules.termsheet.domain.TermSheet;
+import com.arete.korbly.modules.termsheet.enums.CPCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,6 @@ public interface ConditionsPrecedentRepository extends JpaRepository<ConditionsP
     List<ConditionsPrecedent> findBySheetId(UUID termSheetId);
 
     List<ConditionsPrecedent> findBySheetAndDeleteYn(TermSheet sheet, DeleteYn deleteYn);
+
+    boolean existsBySheetAndCodeAndDeleteYn(TermSheet sheet, CPCode cpCode, DeleteYn deleteYn);
 }

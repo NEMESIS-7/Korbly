@@ -2,6 +2,7 @@ package com.arete.korbly.modules.shared.exceptions;
 
 
 import com.arete.korbly.modules.syndication.exceptions.*;
+import com.arete.korbly.modules.termsheet.exceptions.ConflictException;
 import com.arete.korbly.modules.termsheet.exceptions.InvalidUpdate;
 import com.arete.korbly.modules.termsheet.exceptions.TermSheetNotFound;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -271,6 +272,24 @@ public class APIExceptionHandler {
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
         return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<?> handleConflictException(ConflictException e, HttpServletRequest request){
+        APIException apiException = new APIException(
+                "error",
+                HttpStatus.CONFLICT.value(),
+                new APIException.APIError(
+                        HttpStatus.CONFLICT,
+                        e.getMessage(),
+                        Timestamp.from(Instant.now())
+                ),
+                request.getRequestId()
+        );
+        Sentry.setTag("requestId", request.getRequestId());
+        Sentry.setExtra("path", request.getRequestURI());
+        Sentry.captureException(e);
+        return new ResponseEntity<>(apiException, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

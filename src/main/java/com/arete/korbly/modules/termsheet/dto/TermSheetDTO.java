@@ -42,5 +42,5 @@ public record TermSheetDTO(
 
         DeleteYn deleteYn,
 
-        List<ConditionPrecedentDTO> conditionsPrecedent
+        List<CPRequest> conditionsPrecedent
 ) {}

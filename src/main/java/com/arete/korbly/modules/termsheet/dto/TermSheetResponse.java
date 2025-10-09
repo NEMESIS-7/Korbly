@@ -58,4 +58,7 @@ public class TermSheetResponse {
     private Timestamp signedAt;
 
     private AppUser createdBy;
+
+    private List<CPResponse> conditionsPrecedent;
+
 }

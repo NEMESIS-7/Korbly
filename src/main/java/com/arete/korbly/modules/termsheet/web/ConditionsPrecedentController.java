@@ -38,7 +38,7 @@ public class ConditionsPrecedentController {
     public ResponseEntity<CPResponse> addCondition(
             @PathVariable UUID sheetId,
             @Valid @RequestPart(name = "request") String request,
-            @RequestPart(name = "evidence") MultipartFile evidenceFile,
+            @RequestPart(name = "evidence", required = false) MultipartFile evidenceFile,
             HttpServletRequest httpRequest) throws IOException {
         CPRequest cpRequest = objectMapper.readValue(request, CPRequest.class);
         CPResponse response = conditionsPrecedentService.addCondition(sheetId, cpRequest, evidenceFile,httpRequest);

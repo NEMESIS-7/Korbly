@@ -2,7 +2,7 @@ package com.arete.korbly.modules.termsheet.service;
 
 import com.arete.korbly.infrastructure.integrations.S3FileUploadService;
 import com.arete.korbly.modules.shared.service.AuthService;
-import com.arete.korbly.modules.termsheet.PDFGeneratorUtil;
+import com.arete.korbly.modules.termsheet.util.PDFGeneratorUtil;
 import com.arete.korbly.modules.termsheet.domain.ConditionsPrecedent;
 import com.arete.korbly.modules.termsheet.domain.TermSheet;
 import com.arete.korbly.modules.termsheet.exceptions.TermSheetNotFound;
