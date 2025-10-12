@@ -1,134 +1,53 @@
 package com.arete.korbly.modules.valuation.domain;
 
+import com.arete.korbly.modules.valuation.dto.CashFlowLineItem;
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ValuationResult {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID resultId;
+    private UUID valuationResultId;
 
-    @OneToOne
-    @JoinColumn(name = "assumption_id")
-    private ValuationAssumption valuationAssumption;
+    private UUID valuationAssumptionId;
 
-    private BigDecimal netPresentValue;
+    // key metrics
+    private BigDecimal netPresentValue;            // NPV
+    private Double internalRateOfReturnAnnual;     // IRR % annual (nullable)
+    private Double cashOnCashMultiple;             // CoC (nullable)
+    private Integer paybackPeriodInMonths;         // nullable
 
-    private BigDecimal internalRateReturn;
+    // store schedule
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<CashFlowLineItem> cashflowSchedule;
 
-    private BigDecimal cashOnCash;
-
-    private int payBackMonth;
+    // store basic sensitivities
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<double[]> npvVsDiscountRate; // [rate, npv]
 
     @JdbcTypeCode(SqlTypes.JSON)
-    private String jsonCashFlows;
+    @Column(columnDefinition = "jsonb")
+    private List<double[]> npvVsTenorMonths;  // [deltaMonths, npv]
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    private String jsonSensitivities;
-
-    @CreationTimestamp
+    // audit
     private Timestamp computedAt;
-
-    public ValuationResult() {
-    }
-
-    public ValuationResult(UUID resultId,
-                           ValuationAssumption valuationAssumption,
-                           BigDecimal netPresentValue,
-                           BigDecimal internalRateReturn,
-                           BigDecimal cashOnCash,
-                           int payBackMonth,
-                           String jsonCashFlows,
-                           String jsonSensitivities,
-                           Timestamp computedAt) {
-        this.resultId = resultId;
-        this.valuationAssumption = valuationAssumption;
-        this.netPresentValue = netPresentValue;
-        this.internalRateReturn = internalRateReturn;
-        this.cashOnCash = cashOnCash;
-        this.payBackMonth = payBackMonth;
-        this.jsonCashFlows = jsonCashFlows;
-        this.jsonSensitivities = jsonSensitivities;
-        this.computedAt = computedAt;
-    }
-
-    public UUID getResultId() {
-        return resultId;
-    }
-
-    public void setResultId(UUID resultId) {
-        this.resultId = resultId;
-    }
-
-    public ValuationAssumption getValuationAssumption() {
-        return valuationAssumption;
-    }
-
-    public void setValuationAssumption(ValuationAssumption valuationAssumption) {
-        this.valuationAssumption = valuationAssumption;
-    }
-
-    public BigDecimal getNetPresentValue() {
-        return netPresentValue;
-    }
-
-    public void setNetPresentValue(BigDecimal netPresentValue) {
-        this.netPresentValue = netPresentValue;
-    }
-
-    public BigDecimal getInternalRateReturn() {
-        return internalRateReturn;
-    }
-
-    public void setInternalRateReturn(BigDecimal internalRateReturn) {
-        this.internalRateReturn = internalRateReturn;
-    }
-
-    public BigDecimal getCashOnCash() {
-        return cashOnCash;
-    }
-
-    public void setCashOnCash(BigDecimal cashOnCash) {
-        this.cashOnCash = cashOnCash;
-    }
-
-    public int getPayBackMonth() {
-        return payBackMonth;
-    }
-
-    public void setPayBackMonth(int payBackMonth) {
-        this.payBackMonth = payBackMonth;
-    }
-
-    public String getJsonCashFlows() {
-        return jsonCashFlows;
-    }
-
-    public void setJsonCashFlows(String jsonCashFlows) {
-        this.jsonCashFlows = jsonCashFlows;
-    }
-
-    public String getJsonSensitivities() {
-        return jsonSensitivities;
-    }
-
-    public void setJsonSensitivities(String jsonSensitivities) {
-        this.jsonSensitivities = jsonSensitivities;
-    }
-
-    public Timestamp getComputedAt() {
-        return computedAt;
-    }
-
-    public void setComputedAt(Timestamp computedAt) {
-        this.computedAt = computedAt;
-    }
+    private UUID computedByUserId;
 }

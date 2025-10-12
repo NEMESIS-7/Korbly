@@ -8,38 +8,57 @@ import com.arete.korbly.modules.termsheet.enums.AmortizationStructure;
 import com.arete.korbly.modules.valuation.enums.ValuationSource;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
 @Table(
         indexes = {
-                @Index(name = "idx_tranche", columnList = "tranche_id"),
-                @Index(name = "idx_asof", columnList = "as_of")
+                @Index(name = "idx_valuation_tranche", columnList = "tranche_id"),
+                @Index(name = "idx_valuation_asof", columnList = "as_of"),
+                @Index(name = "idx_valuation_created_at", columnList = "createdAt")
         }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ValuationAssumption {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID valuationId;
 
+    /** Linkage */
     @ManyToOne
-    @JoinColumn(name = "tranche_id")
+    @JoinColumn(name = "tranche_id", nullable = false)
     private Tranche tranche;
 
-    @Column(nullable = false)
+    /** Valuation timestamp (when these assumptions apply) */
+    @Column(name = "as_of", nullable = false)
     private Timestamp asOf;
 
+    /** Schedule start date (period t=0 occurs at this month’s start). */
     @Column(nullable = false)
+    private LocalDate scheduleStartDate;
+
+    /** Core economics (mirror CashflowAssumption 1:1) */
+    @Column(nullable = false, precision = 20, scale = 2)
     private BigDecimal principal;
 
-    @Column(nullable = false)
-    private double annualRate;
+    /** Annual nominal interest rate as decimal (e.g., 0.25 = 25%) */
+    @Column(nullable = false, precision = 10, scale = 6)
+    private BigDecimal annualRate;
 
     @Column(nullable = false)
     private int tenorMonths;
@@ -48,32 +67,71 @@ public class ValuationAssumption {
     @Column(nullable = false)
     private AmortizationStructure amortizationStructure;
 
+    /** Grace windows */
     @Column(nullable = false)
     private int gracePrincipalMonths = 0;
 
     @Column(nullable = false)
     private int graceInterestMonths = 0;
 
-    @Column(nullable = false)
+    /** Fees (percentages as decimals except servicingBps which is bps) */
+    @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal feeUpfrontPct = BigDecimal.ZERO;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 4)
     private BigDecimal feeServicingBps = BigDecimal.ZERO;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal feeExitPct = BigDecimal.ZERO;
 
-    @Column(nullable = false)
+    /** Valuation-only input: investor discount rate (decimal, annual) */
+    @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal annualDiscountRate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private DealCurrency currency = DealCurrency.GHS;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ValuationSource source;
 
+    /** Optional scenario label for UI/packaging (e.g., "Base", "Bear", "Bull") */
+    @Column(length = 64)
+    private String scenarioLabel;
+
+
+    /** If provided, final balloon as % of original principal (e.g., 0.30 = 30%) */
+    @Column(precision = 10, scale = 6)
+    private BigDecimal balloonPercentOfOriginal;
+
+    /** If provided, explicit balloon amount at maturity (overrides percent) */
+    @Column(precision = 20, scale = 2)
+    private BigDecimal balloonAmountAtMaturity;
+
+    /** If provided, explicit fixed monthly payment for partial amortization */
+    @Column(precision = 20, scale = 2)
+    private BigDecimal fixedMonthlyPayment;
+
+
+    /** Number of months negative amortization is allowed */
+    private Integer negativeAmortizationMonths;
+
+    /** Minimum payment as % of interest (e.g., 0.50 = pay at least 50% of interest) */
+    @Column(precision = 10, scale = 6)
+    private BigDecimal minPaymentPercentOfInterest;
+
+    /** Minimum absolute payment amount (alternative to % of interest) */
+    @Column(precision = 20, scale = 2)
+    private BigDecimal minPaymentAbsoluteAmount;
+
+    /** Cap multiple on principal during neg-am (e.g., 1.25 = 125% of original) */
+    @Column(precision = 10, scale = 6)
+    private BigDecimal negativeAmortizationCapMultiple;
+
+    /** Audit */
     @OneToOne
-    @JoinColumn(name = "created_by")
+    @JoinColumn(name = "created_by", nullable = false)
     private AppUser createdBy;
 
     @CreationTimestamp
@@ -83,182 +141,6 @@ public class ValuationAssumption {
     private Timestamp updatedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private DeleteYn deleteYn = DeleteYn.N;
-
-    public ValuationAssumption() {
-    }
-
-    public ValuationAssumption(UUID valuationId, Tranche tranche, Timestamp asOf, BigDecimal principal, double annualRate, int tenorMonths, AmortizationStructure amortizationStructure, int gracePrincipalMonths, int graceInterestMonths, BigDecimal feeUpfrontPct, BigDecimal feeServicingBps, BigDecimal feeExitPct, BigDecimal annualDiscountRate, DealCurrency currency, ValuationSource source, AppUser createdBy, Timestamp createdAt, Timestamp updatedAt, DeleteYn deleteYn) {
-        this.valuationId = valuationId;
-        this.tranche = tranche;
-        this.asOf = asOf;
-        this.principal = principal;
-        this.annualRate = annualRate;
-        this.tenorMonths = tenorMonths;
-        this.amortizationStructure = amortizationStructure;
-        this.gracePrincipalMonths = gracePrincipalMonths;
-        this.graceInterestMonths = graceInterestMonths;
-        this.feeUpfrontPct = feeUpfrontPct;
-        this.feeServicingBps = feeServicingBps;
-        this.feeExitPct = feeExitPct;
-        this.annualDiscountRate = annualDiscountRate;
-        this.currency = currency;
-        this.source = source;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deleteYn = deleteYn;
-    }
-
-    public UUID getValuationId() {
-        return valuationId;
-    }
-
-    public void setValuationId(UUID valuationId) {
-        this.valuationId = valuationId;
-    }
-
-    public Tranche getTranche() {
-        return tranche;
-    }
-
-    public void setTranche(Tranche tranche) {
-        this.tranche = tranche;
-    }
-
-    public Timestamp getAsOf() {
-        return asOf;
-    }
-
-    public void setAsOf(Timestamp asOf) {
-        this.asOf = asOf;
-    }
-
-    public BigDecimal getPrincipal() {
-        return principal;
-    }
-
-    public void setPrincipal(BigDecimal principal) {
-        this.principal = principal;
-    }
-
-    public double getAnnualRate() {
-        return annualRate;
-    }
-
-    public void setAnnualRate(double annualRate) {
-        this.annualRate = annualRate;
-    }
-
-    public int getTenorMonths() {
-        return tenorMonths;
-    }
-
-    public void setTenorMonths(int tenorMonths) {
-        this.tenorMonths = tenorMonths;
-    }
-
-    public AmortizationStructure getAmortizationStructure() {
-        return amortizationStructure;
-    }
-
-    public void setAmortizationStructure(AmortizationStructure amortizationStructure) {
-        this.amortizationStructure = amortizationStructure;
-    }
-
-    public int getGracePrincipalMonths() {
-        return gracePrincipalMonths;
-    }
-
-    public void setGracePrincipalMonths(int gracePrincipalMonths) {
-        this.gracePrincipalMonths = gracePrincipalMonths;
-    }
-
-    public int getGraceInterestMonths() {
-        return graceInterestMonths;
-    }
-
-    public void setGraceInterestMonths(int graceInterestMonths) {
-        this.graceInterestMonths = graceInterestMonths;
-    }
-
-    public BigDecimal getFeeUpfrontPct() {
-        return feeUpfrontPct;
-    }
-
-    public void setFeeUpfrontPct(BigDecimal feeUpfrontPct) {
-        this.feeUpfrontPct = feeUpfrontPct;
-    }
-
-    public BigDecimal getFeeServicingBps() {
-        return feeServicingBps;
-    }
-
-    public void setFeeServicingBps(BigDecimal feeServicingBps) {
-        this.feeServicingBps = feeServicingBps;
-    }
-
-    public BigDecimal getFeeExitPct() {
-        return feeExitPct;
-    }
-
-    public void setFeeExitPct(BigDecimal feeExitPct) {
-        this.feeExitPct = feeExitPct;
-    }
-
-    public BigDecimal getAnnualDiscountRate() {
-        return annualDiscountRate;
-    }
-
-    public void setAnnualDiscountRate(BigDecimal annualDiscountRate) {
-        this.annualDiscountRate = annualDiscountRate;
-    }
-
-    public DealCurrency getDealCurrency() {
-        return currency;
-    }
-
-    public void setDealCurrency(DealCurrency currency) {
-        this.currency = currency;
-    }
-
-    public ValuationSource getSource() {
-        return source;
-    }
-
-    public void setSource(ValuationSource source) {
-        this.source = source;
-    }
-
-    public AppUser getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(AppUser createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public DeleteYn getDeleteYn() {
-        return deleteYn;
-    }
-
-    public void setDeleteYn(DeleteYn deleteYn) {
-        this.deleteYn = deleteYn;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }
