@@ -3,7 +3,7 @@ package com.arete.korbly.valuation;
 import com.arete.korbly.modules.termsheet.enums.AmortizationStructure;
 import com.arete.korbly.modules.valuation.domain.CashFlowAssumption;
 import com.arete.korbly.modules.valuation.dto.CashflowRow;
-import com.arete.korbly.modules.valuation.service.CashfFlowEngine;
+import com.arete.korbly.modules.valuation.service.CashFlowEngine;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CashFlowEngineTests {
+class CashFlowEngineTests {
     @Test
     void bulletBasic() {
         CashFlowAssumption a = new CashFlowAssumption();
@@ -23,7 +23,7 @@ public class CashFlowEngineTests {
         a.feeServicingBps = 0.0;
         a.feeExitPct = 0.02; // 2% at maturity
 
-        CashfFlowEngine engine = new CashfFlowEngine();
+        CashFlowEngine engine = new CashFlowEngine();
         List<CashflowRow> rows = engine.buildSchedule(a);
 
         assertEquals(13, rows.size()); // t=0 + 12 months
