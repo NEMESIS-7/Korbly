@@ -6,10 +6,12 @@ import com.arete.korbly.modules.syndication.persistence.TrancheRepository;
 import com.arete.korbly.modules.valuation.domain.CashFlowAssumption;
 import com.arete.korbly.modules.valuation.domain.ValuationAssumption;
 import com.arete.korbly.modules.valuation.dto.ValuationPreviewRequest;
+import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 
+@Component
 public class ValuationMapper {
     private final TrancheRepository trancheRepository;
 

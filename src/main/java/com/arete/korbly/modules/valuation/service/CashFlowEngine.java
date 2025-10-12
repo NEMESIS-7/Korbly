@@ -3,6 +3,7 @@ package com.arete.korbly.modules.valuation.service;
 import com.arete.korbly.modules.termsheet.enums.AmortizationStructure;
 import com.arete.korbly.modules.valuation.domain.CashFlowAssumption;
 import com.arete.korbly.modules.valuation.dto.CashflowRow;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -11,7 +12,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CashfFlowEngine implements ICashflowEngine {
+@Component
+public class CashFlowEngine implements ICashflowEngine {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final MathContext MC = MathContext.DECIMAL64;

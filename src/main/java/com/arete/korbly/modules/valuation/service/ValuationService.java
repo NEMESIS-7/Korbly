@@ -22,13 +22,13 @@ import java.util.UUID;
 public class ValuationService implements IValuationService{
     private final ValuationAssumptionRepository assumptionRepo;
     private final ValuationResultRepository resultRepo;
-    private final CashfFlowEngine cashflowEngine;
+    private final CashFlowEngine cashflowEngine;
     private final AppUserRepository appUserRepo;
     private final ValuationMapper valuationMapper;
 
     public ValuationService(ValuationAssumptionRepository assumptionRepo,
                             ValuationResultRepository resultRepo,
-                            CashfFlowEngine cashflowEngine,
+                            CashFlowEngine cashflowEngine,
                             AppUserRepository appUserRepo,
                             ValuationMapper valuationMapper) {
         this.assumptionRepo = assumptionRepo;
