@@ -51,7 +51,7 @@ public class OTPService {
     }
 
     private String generateOTP() {
-        int otp = random.nextInt(1000, 9000);
+        int otp = random.nextInt(100000, 999999);
         return String.valueOf(otp);
     }
 }
