@@ -5,7 +5,7 @@ import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.sme.domain.SME;
 import jakarta.persistence.*;
-import lombok.Builder;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,6 +15,10 @@ import java.util.UUID;
 
 @Entity
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class CreditMemo {
 
     @Id
@@ -37,6 +41,7 @@ public class CreditMemo {
     @JdbcTypeCode(SqlTypes.JSON)
     private FinancialsDTO rawFinancials;
 
+    @Enumerated(EnumType.STRING)
     private ESGRiskRating esgRiskRating;
 
     private Timestamp evaluatedAt;
@@ -44,22 +49,10 @@ public class CreditMemo {
     @Enumerated(EnumType.STRING)
     private DeleteYn deleteYn;
 
-    public CreditMemo(UUID creditMemoId, SME sme, BigDecimal altmanScore, BigDecimal ohlsonScore, Boolean fxMisMatchFlag, Boolean weakCoverageFlag, Boolean cyclicalVulnerabilityFlag, FinancialsDTO rawFinancials, ESGRiskRating esgRiskRating, Timestamp evaluatedAt, DeleteYn deleteYn) {
-        this.creditMemoId = creditMemoId;
-        this.sme = sme;
-        this.altmanScore = altmanScore;
-        this.ohlsonScore = ohlsonScore;
-        this.fxMisMatchFlag = fxMisMatchFlag;
-        this.weakCoverageFlag = weakCoverageFlag;
-        this.cyclicalVulnerabilityFlag = cyclicalVulnerabilityFlag;
-        this.rawFinancials = rawFinancials;
-        this.esgRiskRating = esgRiskRating;
-        this.evaluatedAt = evaluatedAt;
-        this.deleteYn = deleteYn;
-    }
+    private Boolean isLatest = Boolean.TRUE;
 
-    public CreditMemo() {
-    }
+    @Column(precision = 10, scale = 4)
+    private BigDecimal riskComposite;
 
     @PrePersist
     protected void onCreate(){
@@ -69,77 +62,5 @@ public class CreditMemo {
     @PreUpdate
     protected void onUpdate(){
         this.deleteYn = DeleteYn.N;
-    }
-
-    public UUID getCreditMemoId() {
-        return creditMemoId;
-    }
-
-    public void setCreditMemoId(UUID creditMemoId) {
-        this.creditMemoId = creditMemoId;
-    }
-
-    public SME getSme() {
-        return sme;
-    }
-
-    public void setSme(SME sme) {
-        this.sme = sme;
-    }
-
-    public BigDecimal getAltmanScore() {
-        return altmanScore;
-    }
-
-    public void setAltmanScore(BigDecimal altmanScore) {
-        this.altmanScore = altmanScore;
-    }
-
-    public BigDecimal getOhlsonScore() {
-        return ohlsonScore;
-    }
-
-    public void setOhlsonScore(BigDecimal ohlsonScore) {
-        this.ohlsonScore = ohlsonScore;
-    }
-
-    public Boolean isFxMisMatchFlag() {
-        return fxMisMatchFlag;
-    }
-
-    public void setFxMisMatchFlag(Boolean fxMisMatchFlag) {
-        this.fxMisMatchFlag = fxMisMatchFlag;
-    }
-
-    public Boolean isWeakCoverage() {
-        return weakCoverageFlag;
-    }
-
-    public void setWeakCoverageFlag(Boolean weakCoverageFlag) {
-        this.weakCoverageFlag = weakCoverageFlag;
-    }
-
-    public Boolean isCyclicalVulnerabilityFlag() {
-        return cyclicalVulnerabilityFlag;
-    }
-
-    public void setCyclicalVulnerabilityFlag(Boolean cyclicalVulnerabilityFlag) {
-        this.cyclicalVulnerabilityFlag = cyclicalVulnerabilityFlag;
-    }
-
-    public ESGRiskRating getEsgRiskRating() {
-        return esgRiskRating;
-    }
-
-    public void setEsgRiskRating(ESGRiskRating esgRiskRating) {
-        this.esgRiskRating = esgRiskRating;
-    }
-
-    public Timestamp getEvaluatedAt() {
-        return evaluatedAt;
-    }
-
-    public void setEvaluatedAt(Timestamp evaluatedAt) {
-        this.evaluatedAt = evaluatedAt;
     }
 }

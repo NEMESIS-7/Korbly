@@ -1,5 +1,6 @@
 package com.arete.korbly;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -9,21 +10,23 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class KorblyPlatformApplication {
 
 	public static void main(String[] args) {
-		System.setProperty("SPRING_DATASOURCE_URL", System.getenv("SPRING_DATASOURCE_URL"));
-		System.setProperty("SPRING_DATASOURCE_USERNAME", System.getenv("SPRING_DATASOURCE_USERNAME"));
-		System.setProperty("SPRING_DATASOURCE_PASSWORD", System.getenv("SPRING_DATASOURCE_PASSWORD"));
+        Dotenv dotenv = Dotenv.configure().load();
 
-		System.setProperty("CLOUDINARY_NAME", System.getenv("CLOUDINARY_NAME"));
-		System.setProperty("CLOUDINARY_API_SECRET", System.getenv("CLOUDINARY_API_SECRET"));
-		System.setProperty("CLOUDINARY_API_KEY", System.getenv("CLOUDINARY_API_KEY"));
-		System.setProperty("JWT_SECRET", System.getenv("JWT_SECRET"));
+		System.setProperty("SPRING_DATASOURCE_URL", dotenv.get("SPRING_DATASOURCE_URL"));
+		System.setProperty("SPRING_DATASOURCE_USERNAME", dotenv.get("SPRING_DATASOURCE_USERNAME"));
+		System.setProperty("SPRING_DATASOURCE_PASSWORD", dotenv.get("SPRING_DATASOURCE_PASSWORD"));
 
-		System.setProperty("SPRING_MAIL_USERNAME", System.getenv("SPRING_MAIL_USERNAME"));
-		System.setProperty("SPRING_MAIL_PASSWORD", System.getenv("SPRING_MAIL_PASSWORD"));
+		System.setProperty("CLOUDINARY_NAME", dotenv.get("CLOUDINARY_NAME"));
+		System.setProperty("CLOUDINARY_API_SECRET", dotenv.get("CLOUDINARY_API_SECRET"));
+		System.setProperty("CLOUDINARY_API_KEY", dotenv.get("CLOUDINARY_API_KEY"));
+		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
 
-		System.setProperty("REDIS_URL", System.getenv("REDIS_URL"));
+		System.setProperty("SPRING_MAIL_USERNAME", dotenv.get("SPRING_MAIL_USERNAME"));
+		System.setProperty("SPRING_MAIL_PASSWORD", dotenv.get("SPRING_MAIL_PASSWORD"));
 
-		System.setProperty("SENTRY_AUTH_TOKEN", System.getenv("SENTRY_AUTH_TOKEN"));
+		System.setProperty("REDIS_URL", dotenv.get("REDIS_URL"));
+
+		System.setProperty("SENTRY_AUTH_TOKEN", dotenv.get("SENTRY_AUTH_TOKEN"));
 
 		SpringApplication.run(KorblyPlatformApplication.class, args);
 	}

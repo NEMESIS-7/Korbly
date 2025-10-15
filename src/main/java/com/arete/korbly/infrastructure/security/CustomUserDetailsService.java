@@ -24,6 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("identifier: " + username);
         Optional<AppUser> appUser = appUserRepository.findByPrimaryContactEmail((username));
         if (appUser.isPresent()){
             return new UserPrincipal(getAuthorities(appUser.get()), appUser.get());
