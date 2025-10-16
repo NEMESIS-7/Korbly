@@ -10,6 +10,7 @@ import java.math.RoundingMode;
 public class AltmanScoreCalculator {
 
     public BigDecimal calculate(FinancialsDTO dto) {
+        System.out.println("financials: " + dto);
         BigDecimal totalAssets = dto.totalAssets();
         if (totalAssets == null || totalAssets.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;

@@ -79,7 +79,8 @@ public class CreditEvaluationService {
 
             return creditDTOMapper
                     .creditMemoEntityToCreditMemoDTO(creditMemoRepository.save(memo));
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new InvalidFinancials("User entered invalid financial data.");
         }
     }
