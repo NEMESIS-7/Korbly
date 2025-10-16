@@ -41,6 +41,10 @@ public class CreditMemo {
     @JdbcTypeCode(SqlTypes.JSON)
     private FinancialsDTO rawFinancials;
 
+    private Double dscr;
+
+    private Double icr;
+
     @Enumerated(EnumType.STRING)
     private ESGRiskRating esgRiskRating;
 

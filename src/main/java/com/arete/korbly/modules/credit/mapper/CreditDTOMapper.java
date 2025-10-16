@@ -4,7 +4,7 @@ import com.arete.korbly.modules.credit.domain.CreditMemo;
 import com.arete.korbly.modules.credit.dto.CreditMemoDTO;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface CreditDTOMapper {
 
     CreditMemo creditMemoDTOToCreditMemoEntity(CreditMemoDTO creditMemoDTO);

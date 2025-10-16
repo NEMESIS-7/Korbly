@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.credit.persistence;
 
 import com.arete.korbly.modules.credit.domain.CreditMemo;
+import com.arete.korbly.modules.sme.dto.CreditHealthDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -31,5 +32,33 @@ public interface CreditMemoRepository extends JpaRepository<CreditMemo, UUID> {
 
     @Query("select c from CreditMemo c where c.deleteYn = 'N'")
     List<CreditMemo> getAllCreditMemo();
+
+    @Query("""
+                select new com.arete.korbly.modules.sme.dto.CreditHealthDTO(
+                    cm.dscr,
+                    cm.icr,
+                    cm.altmanScore,
+                    cm.ohlsonScore,
+                    ''
+                )
+                from CreditMemo cm
+                where cm.sme.smeId = :smeId
+                  and cm.isLatest = true
+            """)
+    CreditHealthDTO latestHealth(UUID smeId);
+
+    /*    @Query("""
+        select new com.arete.korbly.modules.sme.dto.CreditHealthDTO(
+            cm.dscr,
+            cm.icr,
+            cm.leverage,
+            cm.altmanScore,
+            cm.ohlsonScore
+        )
+        from CreditMemo cm
+        where cm.sme.smeId = :smeId
+          and cm.isLatest = true
+    """)
+    CreditHealthDTO latestHealth(UUID smeId);*/
 
 }

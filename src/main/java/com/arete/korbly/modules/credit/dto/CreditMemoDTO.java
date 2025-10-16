@@ -11,6 +11,8 @@ public record CreditMemoDTO(
         SME sme,
         BigDecimal altmanScore,
         BigDecimal ohlsonScore,
+        Double dscr,
+        Double icr,
         Boolean weakCoverageFlag,
         Boolean cyclicalVulnerabilityFlag,
         ESGRiskRating esgRiskRating,
