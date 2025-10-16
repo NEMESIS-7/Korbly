@@ -5,6 +5,9 @@ import com.arete.korbly.modules.investor.dto.PortfolioSummaryDTO;
 import com.arete.korbly.modules.investor.persistence.InvestorRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 public class InvestorService {
     private final InvestorRepository investorRepository;
@@ -13,11 +16,11 @@ public class InvestorService {
         this.investorRepository = investorRepository;
     }
 
-    public PortfolioSummaryDTO getSummary(java.util.UUID investorId) {
+    public PortfolioSummaryDTO getSummary(UUID investorId) {
         return investorRepository.getPortfolioSummary(investorId);
     }
 
-    public java.util.List<InvestorPositionDTO> getPositions(java.util.UUID investorId) {
+    public List<InvestorPositionDTO> getPositions(UUID investorId) {
         return investorRepository.positionsSimple(investorId);
     }
 }

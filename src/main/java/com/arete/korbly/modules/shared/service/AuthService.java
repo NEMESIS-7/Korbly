@@ -257,7 +257,7 @@ public class AuthService {
                     user.getUserType()
             );
         }else{
-            throw new InvalidOTP("User provided a wrong or has already use this OTP. Please try again");
+            throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
     }
 
@@ -278,7 +278,7 @@ public class AuthService {
                     accessToken
             );
         }else{
-            throw new InvalidOTP("User provided a wrong or has already use this OTP. Please try again");
+            throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
     }
 

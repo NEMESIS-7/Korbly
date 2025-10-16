@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.sme.web;
 
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.exceptions.SMENotFound;
 import com.arete.korbly.modules.sme.domain.SME;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import com.arete.korbly.modules.sme.service.SmeDashboardService;
@@ -43,6 +44,9 @@ public class SmeDashBoardController {
     ) {
         Optional<SME> sme = smeRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
         System.out.println("user ID: " + getAppUserId(httpServletRequest));
+        if(sme.isEmpty()){
+            throw new SMENotFound();
+        }
         System.out.println("sme ID: " + sme.get().getAppUser().getUserId());
         return ResponseEntity.ok(service.getDashboard(sme.get().getSmeId(), rangeMonths));
     }

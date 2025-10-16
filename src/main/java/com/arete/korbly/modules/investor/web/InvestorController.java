@@ -46,11 +46,11 @@ public class InvestorController {
     public ResponseEntity<?> summary(
     ) {
         Optional<Investor> investor = investorRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
-        System.out.println("user ID: " + getAppUserId(httpServletRequest));
-        System.out.println("investor ID: " + investor.get().getInvestorId());
         if(investor.isEmpty()){
             throw new InvestorNotFound();
         }
+        System.out.println("user ID: " + getAppUserId(httpServletRequest));
+        System.out.println("investor ID: " + investor.get().getInvestorId());
         return ResponseEntity.ok(investorService.getSummary(investor.get().getInvestorId()));
     }
 
@@ -59,11 +59,11 @@ public class InvestorController {
     public ResponseEntity<?> positions(
     ) {
         Optional<Investor> investor = investorRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
-        System.out.println("user ID: " + getAppUserId(httpServletRequest));
-        System.out.println("investor ID: " + investor.get().getInvestorId());
         if(investor.isEmpty()){
             throw new InvestorNotFound();
         }
+        System.out.println("user ID: " + getAppUserId(httpServletRequest));
+        System.out.println("investor ID: " + investor.get().getInvestorId());
         return ResponseEntity.ok(investorService.getPositions(investor.get().getInvestorId()));
     }
 }
