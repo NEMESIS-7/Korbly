@@ -35,6 +35,7 @@ import org.thymeleaf.context.Context;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
@@ -255,6 +256,7 @@ public class AuthService {
                     .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
             String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
             user.setIsVerified(true);
+            user.setLastLogin(Timestamp.from(Instant.now()));
 
             appUserRepository.save(user);
 
@@ -282,6 +284,7 @@ public class AuthService {
 
             String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
             user.setIsVerified(true);
+            user.setLastLogin(Timestamp.from(Instant.now()));
 
             appUserRepository.save(user);
             return new LoginResponse(
@@ -303,6 +306,7 @@ public class AuthService {
         } else {
             AppUser appUser = user.get();
             appUser.setIsVerified(true);
+
 
             appUserRepository.save(appUser);
         }
