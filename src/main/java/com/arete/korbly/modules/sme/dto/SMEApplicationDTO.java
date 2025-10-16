@@ -1,5 +1,6 @@
 package com.arete.korbly.modules.sme.dto;
 
+import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.shared.enums.SMERegion;
 
@@ -20,6 +21,7 @@ public record SMEApplicationDTO(
         Integer numberOfEmployees,
         BigDecimal monthlyRevenue,
         BigDecimal requestedAmount,
-        String purposeOfFunding
+        String purposeOfFunding,
+        FinancialsDTO smeFinancials
 ) {
 }

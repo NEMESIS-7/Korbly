@@ -6,6 +6,8 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.arete.korbly.infrastructure.integrations.OTPService;
 import com.arete.korbly.infrastructure.integrations.S3FileUploadService;
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.credit.application.CreditEvaluationService;
+import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.investor.domain.Investor;
 import com.arete.korbly.modules.investor.dto.InvestorApplicationDTO;
 import com.arete.korbly.modules.investor.dto.InvestorDTO;
@@ -50,7 +52,7 @@ public class AuthService {
     private final SMEMapper smeMapper;
     private final OTPService otpService;
     private final EmailService emailService;
-
+    private final CreditEvaluationService creditEvaluationService;
 
 
     public AuthService(JWTService jwtService,
@@ -61,7 +63,10 @@ public class AuthService {
                        SMERepository smeRepository,
                        SMEMapper smeMapper,
                        OTPService otpService,
-                       AppUserRepository appUserRepository1, EmailService emailService) {
+                       AppUserRepository appUserRepository1,
+                       EmailService emailService,
+                       CreditEvaluationService creditEvaluationService
+    ) {
         this.jwtService = jwtService;
         this.investorMapper = investorMapper;
         this.investorRepository = investorRepository;
@@ -72,6 +77,7 @@ public class AuthService {
         this.otpService = otpService;
         this.appUserRepository = appUserRepository1;
         this.emailService = emailService;
+        this.creditEvaluationService = creditEvaluationService;
     }
 
     @Transactional
@@ -105,7 +111,7 @@ public class AuthService {
         //1. cert of incorporation
         UploadFileResponse incCert = uploadInvestorFiles(baseKey + "incorporation.pdf", certOfIncorporation);
         //2. latestAuditedFinancialStatements
-        UploadFileResponse invFile = uploadInvestorFiles(baseKey + "lastAuditedFinancialStatement.pdf",latestAuditedFinancialStatements);
+        UploadFileResponse invFile = uploadInvestorFiles(baseKey + "lastAuditedFinancialStatement.pdf", latestAuditedFinancialStatements);
         //3. investmentPolicyStatement
         UploadFileResponse policyStmt = uploadInvestorFiles(baseKey + "investmentPolicyStatement.pdf", investmentPolicyStatement);
         //4. boardResolution
@@ -122,6 +128,7 @@ public class AuthService {
 
     }
 
+    @Transactional
     public SMEDTO onboardSME(
             SMEApplicationDTO smeApplicationDTO,
             MultipartFile certOfIncorporation,
@@ -170,7 +177,14 @@ public class AuthService {
 
         appUserRepository.save(sme);
         smeRepository.save(newSME);
+        smeEvaluation(newSME, smeApplicationDTO);
         return smeMapper.smeEntityToSMEDto(newSME);
+    }
+
+    protected void smeEvaluation(SME sme, SMEApplicationDTO applicationDTO) {
+        System.out.println("sme financials id auth service: " + applicationDTO.smeFinancials());
+        FinancialsDTO dto = applicationDTO.smeFinancials();
+        creditEvaluationService.evaluateAndSave(sme.getSmeId(), dto);
     }
 
     public String generatePresignedDownloadUrl(String fileKey, int expirationMinutes) {
@@ -235,38 +249,38 @@ public class AuthService {
     }
 
 
-    public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response){
-        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
+    public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response) {
+        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())) {
             AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
                     .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
-            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
+            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
             user.setIsVerified(true);
 
             appUserRepository.save(user);
 
             ResponseCookie jwtCookie = ResponseCookie.from("JWTAccess_token", accessToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(3600)
-                .build();
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(3600)
+                    .build();
             response.setHeader("Set-Cookie", jwtCookie.toString());
             return new VerificationResponse(
                     true,
                     user.getUserType()
             );
-        }else{
+        } else {
             throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
     }
 
-    public LoginResponse loginResponse(VerificationRequest request){
-        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
+    public LoginResponse loginResponse(VerificationRequest request) {
+        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())) {
             AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
                     .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found"));
 
-            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
+            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
             user.setIsVerified(true);
 
             appUserRepository.save(user);
@@ -277,16 +291,16 @@ public class AuthService {
                     user.getPrimaryContactEmail(),
                     accessToken
             );
-        }else{
+        } else {
             throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
     }
 
-    public AppUser verifyUser(VerifyUser verifyUser){
+    public AppUser verifyUser(VerifyUser verifyUser) {
         Optional<AppUser> user = appUserRepository.findByPrimaryContactEmail(verifyUser.primaryContactEmail());
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             throw new UserNotFound("User with email: " + verifyUser.primaryContactEmail() + " not found.");
-        }else{
+        } else {
             AppUser appUser = user.get();
             appUser.setIsVerified(true);
 
@@ -295,9 +309,9 @@ public class AuthService {
         return user.get();
     }
 
-    public void verify(VerifyUser user){
+    public void verify(VerifyUser user) {
         Optional<AppUser> appUser = appUserRepository.findByPrimaryContactEmail(user.primaryContactEmail());
-        if (appUser.isPresent()){
+        if (appUser.isPresent()) {
             AppUser appUser1 = appUser.get();
             String otp = otpService.generateAndStoreOTP((appUser1.getPrimaryContactEmail()));
             EmailRequest request = new EmailRequest(
@@ -308,11 +322,10 @@ public class AuthService {
             Context context = new Context();
             context.setVariable("otp", otp);
             emailService.sendEmail(request, "LoginTemplate", context);
-        }else{
+        } else {
             throw new UserNotFound("User with email: " + user.primaryContactEmail() + " not found.");
         }
     }
-
 
 
     public UploadFileResponse uploadFile(MultipartFile file) throws IOException {
