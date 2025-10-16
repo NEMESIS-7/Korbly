@@ -255,7 +255,7 @@ public class RegulatorService implements IRegulatorService {
                     tranche.getAmount(),
                     allocatedSoFar,
                     remainingCapacity,
-                    tranche.getInterestRate(),
+                    BigDecimal.valueOf(tranche.getInterestRate()),
                     tranche.getTenorMonths(),
                     allocations
             ));

@@ -5,7 +5,7 @@ import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.syndication.enums.TrancheStatus;
 import com.arete.korbly.modules.syndication.enums.TrancheType;
 import jakarta.persistence.*;
-import lombok.Builder;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -14,6 +14,10 @@ import java.util.UUID;
 
 @Entity
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Tranche {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,7 +30,7 @@ public class Tranche {
     private BigDecimal amount;
 
     @Column(nullable = false, scale = 2)
-    private BigDecimal interestRate;
+    private Double interestRate;
 
     @Column(nullable = false)
     private Integer tenorMonths;
@@ -54,144 +58,6 @@ public class Tranche {
     private Boolean isAllocated;
 
 
-    public Tranche(UUID trancheId,
-                   TrancheType trancheType,
-                   BigDecimal amount,
-                   BigDecimal interestRate,
-                   Integer tenorMonths,
-                   Boolean isAnchor,
-                   Deal deal,
-                   Timestamp createdAt,
-                   Timestamp updatedAt,
-                   DeleteYn deleteYn,
-                   AppUser createdBy,
-                   TrancheStatus trancheStatus,
-                   Boolean isAllocated) {
-        this.trancheId = trancheId;
-        this.trancheType = trancheType;
-        this.amount = amount;
-        this.interestRate = interestRate;
-        this.tenorMonths = tenorMonths;
-        this.isAnchor = isAnchor;
-        this.deal = deal;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deleteYn = deleteYn;
-        this.createdBy = createdBy;
-        this.trancheStatus = trancheStatus;
-        this.isAllocated = isAllocated;
-    }
-
-    public Tranche() {
-    }
-
-    public Boolean getAllocated() {
-        return isAllocated;
-    }
-
-    public void setAllocated(Boolean allocated) {
-        isAllocated = allocated;
-    }
-
-    public TrancheStatus getTrancheStatus() {
-        return trancheStatus;
-    }
-
-    public void setTrancheStatus(TrancheStatus trancheStatus) {
-        this.trancheStatus = trancheStatus;
-    }
-
-    public UUID getTrancheId() {
-        return trancheId;
-    }
-
-    public void setTrancheId(UUID trancheId) {
-        this.trancheId = trancheId;
-    }
-
-    public TrancheType getTrancheType() {
-        return trancheType;
-    }
-
-    public void setTrancheType(TrancheType trancheType) {
-        this.trancheType = trancheType;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public BigDecimal getInterestRate() {
-        return interestRate;
-    }
-
-    public void setInterestRate(BigDecimal interestRate) {
-        this.interestRate = interestRate;
-    }
-
-    public Integer getTenorMonths() {
-        return tenorMonths;
-    }
-
-    public void setTenorMonths(Integer tenorMonths) {
-        this.tenorMonths = tenorMonths;
-    }
-
-    public Boolean isAnchor() {
-        return isAnchor;
-    }
-
-    public void setAnchor(Boolean anchor) {
-        isAnchor = anchor;
-    }
-
-    public Deal getDeal() {
-        return deal;
-    }
-
-    public void setDeal(Deal deal) {
-        this.deal = deal;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public AppUser getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(AppUser createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Boolean getAnchor() {
-        return isAnchor;
-    }
-
-    public DeleteYn getDeleteYn() {
-        return deleteYn;
-    }
-
-    public void setDeleteYn(DeleteYn deleteYn) {
-        this.deleteYn = deleteYn;
-    }
 
     @PrePersist
     protected void onCreate(){

@@ -11,6 +11,7 @@ import java.util.UUID;
 @Repository
 public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
 
+    @Query("select a from AppUser a where a.primaryContactEmail = :primaryContactEmail")
     Optional<AppUser> findByPrimaryContactEmail(String primaryContactEmail);
 
     @Query("select a from AppUser a where a.userId = :appUserId")

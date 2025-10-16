@@ -4,6 +4,7 @@ package com.arete.korbly.infrastructure.security;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.UserType;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -19,8 +20,8 @@ import java.util.function.Function;
 
 @Service
 public class JWTService {
-
-    private String secretKey = System.getenv("JWT_SECRET");
+    Dotenv dotenv = Dotenv.configure().load();
+    private String secretKey = dotenv.get("JWT_SECRET");
 
     private final AppUserRepository appUserRepository;
 

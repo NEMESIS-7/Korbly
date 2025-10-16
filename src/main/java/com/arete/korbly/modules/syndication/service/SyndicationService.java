@@ -268,7 +268,7 @@ public class SyndicationService implements ISyndicationService{
 
         if(details.amount().compareTo(remainderToBeFunded) == 0){
             trancheToUpdate.setTrancheStatus(TrancheStatus.FULLY_ALLOCATED);
-            trancheToUpdate.setAllocated(Boolean.TRUE);
+            trancheToUpdate.setIsAllocated(Boolean.TRUE);
         }else{
             trancheToUpdate.setTrancheStatus(TrancheStatus.PARTIALLY_ALLOCATED);
         }
@@ -330,7 +330,7 @@ public class SyndicationService implements ISyndicationService{
                             tranche.getAmount(),
                             allocatedSoFar,
                             remainingCapacity,
-                            tranche.getInterestRate(),
+                            BigDecimal.valueOf(tranche.getInterestRate()),
                             tranche.getTenorMonths()
                     );
                     eligibleTranches.add(trancheViewDTO);

@@ -6,9 +6,7 @@ import com.arete.korbly.modules.credit.dto.CreditMemoDTO;
 import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.credit.mapper.CreditDTOMapper;
 import com.arete.korbly.modules.credit.persistence.CreditMemoRepository;
-import com.arete.korbly.modules.credit.util.AltmanScoreCalculator;
-import com.arete.korbly.modules.credit.util.ESGRiskMapper;
-import com.arete.korbly.modules.credit.util.OhlsonScoreCalculator;
+import com.arete.korbly.modules.credit.util.*;
 import com.arete.korbly.modules.shared.exceptions.InvalidFinancials;
 import com.arete.korbly.modules.shared.exceptions.SMENotFound;
 import com.arete.korbly.modules.sme.domain.SME;
@@ -26,6 +24,8 @@ import java.util.UUID;
 public class CreditEvaluationService {
     private final AltmanScoreCalculator altmanZScoreCalculator;
     private final OhlsonScoreCalculator ohlsonScoreCalculator;
+    private final DscrCalculator dscrCalculator;
+    private final IcrCalculator icrCalculator;
     private final CreditMemoRepository creditMemoRepository;
     private final ESGRiskMapper eSGRiskMapper;
     private final CreditDTOMapper creditDTOMapper;
@@ -33,12 +33,16 @@ public class CreditEvaluationService {
 
     public CreditEvaluationService(AltmanScoreCalculator altmanZScoreCalculator,
                                    OhlsonScoreCalculator ohlsonScoreCalculator,
+                                   DscrCalculator dscrCalculator,
+                                   IcrCalculator icrCalculator,
                                    CreditMemoRepository creditMemoRepository,
                                    ESGRiskMapper eSGRiskMapper,
                                    CreditDTOMapper creditDTOMapper,
                                    SMERepository smeRepository) {
         this.altmanZScoreCalculator = altmanZScoreCalculator;
         this.ohlsonScoreCalculator = ohlsonScoreCalculator;
+        this.dscrCalculator = dscrCalculator;
+        this.icrCalculator = icrCalculator;
         this.creditMemoRepository = creditMemoRepository;
         this.eSGRiskMapper = eSGRiskMapper;
         this.creditDTOMapper = creditDTOMapper;
@@ -52,6 +56,8 @@ public class CreditEvaluationService {
 
             BigDecimal altmanScore = altmanZScoreCalculator.calculate(financialsDTO);
             BigDecimal ohlsonScore = ohlsonScoreCalculator.calculate(financialsDTO);
+            BigDecimal dscr = dscrCalculator.calculate(financialsDTO);
+            BigDecimal icr = icrCalculator.calculate(financialsDTO, null);
 
             boolean fxMismatchFlag = detectFxMismatch(financialsDTO);
             boolean weakCoverageFlag = detectWeakCoverage(financialsDTO);
@@ -61,6 +67,8 @@ public class CreditEvaluationService {
                     .sme(sme)
                     .altmanScore(altmanScore)
                     .ohlsonScore(ohlsonScore)
+                    .dscr(dscr.doubleValue())
+                    .icr(icr.doubleValue())
                     .rawFinancials(financialsDTO)
                     .evaluatedAt(Timestamp.from(Instant.now()))
                     .weakCoverageFlag(weakCoverageFlag)
