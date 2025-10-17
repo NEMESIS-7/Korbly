@@ -43,7 +43,7 @@ public class SmeDashBoardController {
             @RequestParam(required = false) Integer rangeMonths
     ) {
         Optional<SME> sme = smeRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
-        System.out.println("user ID: " + getAppUserId(httpServletRequest));
+        System.out.println("user ID in sme dashboard controller: " + getAppUserId(httpServletRequest));
         if(sme.isEmpty()){
             throw new SMENotFound();
         }
