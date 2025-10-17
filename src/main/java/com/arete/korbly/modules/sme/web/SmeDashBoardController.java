@@ -42,11 +42,15 @@ public class SmeDashBoardController {
     public ResponseEntity<?> getDashboard(
             @RequestParam(required = false) Integer rangeMonths
     ) {
-        System.out.println("request headers: " + httpServletRequest.getHeaderNames().toString());
-        System.out.println("auth header in dashboard controller: " + httpServletRequest.getHeader("Authorization"));
+//        System.out.println("request headers: " + httpServletRequest.getHeaderNames().toString());
+        String authHeader = httpServletRequest.getHeader("Authorization");
+        String token = authHeader.substring(7);
+
+        System.out.println("token: " + token);
 
         System.out.println("first userId: " + getAppUserId(httpServletRequest));
-        Optional<SME> sme = smeRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
+
+        Optional<SME> sme = smeRepository.findByAppUserUserId(jwtService.extractAppUserId(token));
         System.out.println("user ID in sme dashboard controller: " + getAppUserId(httpServletRequest));
         if(sme.isEmpty()){
             throw new SMENotFound();
