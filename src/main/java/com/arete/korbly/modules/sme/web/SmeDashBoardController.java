@@ -42,8 +42,8 @@ public class SmeDashBoardController {
     public ResponseEntity<?> getDashboard(
             @RequestParam(required = false) Integer rangeMonths
     ) {
-        System.out.println("request headers: " + httpServletRequest.getHeaderNames());
-        System.out.println("auth header: " + httpServletRequest.getHeader("Authorization"));
+        System.out.println("request headers: " + httpServletRequest.getHeaderNames().toString());
+        System.out.println("auth header in dashboard controller: " + httpServletRequest.getHeader("Authorization"));
 
         System.out.println("first userId: " + getAppUserId(httpServletRequest));
         Optional<SME> sme = smeRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
