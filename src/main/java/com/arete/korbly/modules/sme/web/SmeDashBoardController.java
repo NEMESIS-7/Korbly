@@ -6,6 +6,7 @@ import com.arete.korbly.modules.sme.domain.SME;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import com.arete.korbly.modules.sme.service.SmeDashboardService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,20 +43,30 @@ public class SmeDashBoardController {
     public ResponseEntity<?> getDashboard(
             @RequestParam(required = false) Integer rangeMonths
     ) {
-//        System.out.println("request headers: " + httpServletRequest.getHeaderNames().toString());
         String authHeader = httpServletRequest.getHeader("Authorization");
+
+        // Guard clause - this is the key fix
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("auth header: " + authHeader);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Missing or invalid Authorization header");
+        }
+
         String token = authHeader.substring(7);
+
+        if (token.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Empty token");
+        }
 
         System.out.println("token: " + token);
 
-        System.out.println("first userId: " + getAppUserId(httpServletRequest));
-
         Optional<SME> sme = smeRepository.findByAppUserUserId(jwtService.extractAppUserId(token));
-        System.out.println("user ID in sme dashboard controller: " + getAppUserId(httpServletRequest));
+
         if(sme.isEmpty()){
             throw new SMENotFound();
         }
-        System.out.println("sme ID: " + sme.get().getAppUser().getUserId());
+
         return ResponseEntity.ok(service.getDashboard(sme.get().getSmeId(), rangeMonths));
     }
 }
