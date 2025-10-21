@@ -45,11 +45,16 @@ public class InvestorController {
     @GetMapping("/portfolio/summary")
     public ResponseEntity<?> summary(
     ) {
-        Optional<Investor> investor = investorRepository.findByAppUserUserId(getAppUserId(httpServletRequest));
+        System.out.println("auth header: " + httpServletRequest.getHeader("Authorization").substring(7));
+
+        String token = httpServletRequest.getHeader("Authorization").substring(7);
+        System.out.println("user token(investor dashboard): " + token);
+
+        Optional<Investor> investor = investorRepository.findByAppUserUserId(jwtService.extractAppUserId(token));
         if(investor.isEmpty()){
             throw new InvestorNotFound();
         }
-        System.out.println("user ID: " + getAppUserId(httpServletRequest));
+//        System.out.println("user ID: " + getAppUserId(httpServletRequest));
         System.out.println("investor ID: " + investor.get().getInvestorId());
         return ResponseEntity.ok(investorService.getSummary(investor.get().getInvestorId()));
     }
