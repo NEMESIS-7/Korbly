@@ -8,6 +8,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import java.util.List;
+
 @EnableWebMvc
 @Configuration
 public class WebConfig {
@@ -17,7 +19,7 @@ public class WebConfig {
         configuration.addAllowedOriginPattern("*");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
-        configuration.addAllowedOrigin("http://korbly.vercel.app");
+        configuration.setAllowedOrigins(List.of("https://korbly.vercel.app", "http://localhost:5173", "http://localhost:5174"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

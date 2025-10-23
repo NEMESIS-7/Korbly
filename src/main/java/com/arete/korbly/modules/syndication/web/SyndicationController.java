@@ -42,8 +42,11 @@ public class SyndicationController {
 
     //Deal APIs
     @PostMapping("/create-deal")
-    public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO){
-        UUID createdById = jwtService.extractAppUserId(httpServletRequest);
+    public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO, HttpServletRequest request){
+        String token = httpServletRequest.getHeader("Authorization").substring(7);
+        System.out.println("user token(create deal): " + token);
+
+        UUID createdById = jwtService.extractAppUserId(token);
         AppUser createdBy = appUserRepository.findAppUserById(createdById)
                 .orElseThrow(() -> new UserNotFound("User with ID: " + createdById + " not found."));
         return new ResponseEntity<>(syndicationService.createDeal(dealDTO, createdBy), HttpStatus.CREATED);
