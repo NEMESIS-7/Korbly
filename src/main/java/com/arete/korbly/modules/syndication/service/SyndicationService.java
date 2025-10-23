@@ -236,8 +236,9 @@ public class SyndicationService implements ISyndicationService{
             throw new InvalidTrancheUpdate("Deal for this tranche is closed");
         }
 
-        Investor investor = investorRepository.findById(details.investorId())
+        Investor investor = investorRepository.findByInvestorId(details.investorId())
                 .orElseThrow(InvestorNotFound::new);
+
         if(Boolean.FALSE.equals(investor.getInvestorVerified())){
             throw new UnverifiedInvestor("Investor is unverified and cannot continue with action");
         }
