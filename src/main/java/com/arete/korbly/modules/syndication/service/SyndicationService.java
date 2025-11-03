@@ -24,6 +24,7 @@ import com.arete.korbly.modules.syndication.persistence.AllocationRepository;
 import com.arete.korbly.modules.syndication.persistence.DealRepository;
 import com.arete.korbly.modules.syndication.persistence.TrancheRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
+@Slf4j
 @Service
 public class SyndicationService implements ISyndicationService{
     private final SMERepository smeRepository;
@@ -99,6 +101,14 @@ public class SyndicationService implements ISyndicationService{
                     .toDealDTO(dealRepository.save(dealToUpdate));
         }
         throw new InvalidDealUpdate();
+    }
+
+    public Page<DealDTO> getSmeDeals(UUID appUserId, Pageable pageable){
+        SME sme = smeRepository.findByAppUserUserId(appUserId)
+                .orElseThrow(() -> new SMENotFound("Sme witho user ID: " + appUserId + " not found"));
+        log.info("fetching deals for sme with smeID: {}", sme.getSmeId());
+        Page<Deal> smeDeals = dealRepository.findBySmeInvolved_SmeId(sme.getSmeId(), pageable);
+        return smeDeals.map(syndicationMapper::toDealDTO);
     }
 
     @Override

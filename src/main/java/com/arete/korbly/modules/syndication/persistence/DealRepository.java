@@ -39,4 +39,7 @@ public interface DealRepository extends JpaRepository<Deal, UUID> {
 
     @Query("select d from Deal d where d.dealStatus = :dealSector and d.dealStatus = :status and d.deleteYn = 'N'")
     Page<Deal> findByDealSectorAndDealStatus(SMEIndustry dealSector, DealStatus status, Pageable pageable);
+
+    @Query("select d from Deal d where d.smeInvolved.smeId = :smeInvolvedSmeId and d.deleteYn = 'N'")
+    Page<Deal> findBySmeInvolved_SmeId(UUID smeInvolvedSmeId, Pageable pageable);
 }

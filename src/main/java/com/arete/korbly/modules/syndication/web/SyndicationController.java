@@ -57,6 +57,11 @@ public class SyndicationController {
         return syndicationService.getAllDeals(pageable);
     }
 
+    @GetMapping("/sme/get-deals")
+    public Page<DealDTO> getSmeDeals(Pageable pageable){
+        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        return syndicationService.getSmeDeals(appUserId, pageable);
+    }
 
     @PutMapping("/deals/next-stage/{dealId}")
     public ResponseEntity<?> moveToNextStage(@PathVariable String dealId){
