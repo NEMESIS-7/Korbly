@@ -7,6 +7,7 @@ import com.arete.korbly.modules.sme.dto.SmeDashboardDto;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import com.arete.korbly.modules.sme.persistence.SmeFinancialsRepository;
 import com.arete.korbly.modules.syndication.persistence.DealRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +37,7 @@ public class SmeDashboardService {
         this.smeRepository = smeRepository;
     }
 
+    @Cacheable(value = "dashboard", key = "#smeId")
     public SmeDashboardDto getDashboard(UUID smeId, Integer rangeMonths) {
         int window = (rangeMonths == null || rangeMonths < 1) ? 12 : rangeMonths;
         LocalDate nowMonth = LocalDate.now().withDayOfMonth(1);
