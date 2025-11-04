@@ -137,6 +137,7 @@ public class AuthService {
             MultipartFile businessPlan,
             MultipartFile taxClearanceCert
     ) throws IOException {
+
         AppUser sme = AppUser.builder()
                 .primaryContactEmail(smeApplicationDTO.primaryContactEmail())
                 .userType(UserType.BUSINESS)
@@ -178,7 +179,7 @@ public class AuthService {
 
         appUserRepository.save(sme);
         smeRepository.save(newSME);
-        smeEvaluation(newSME, smeApplicationDTO);
+//        smeEvaluation(newSME, smeApplicationDTO);
         return smeMapper.smeEntityToSMEDto(newSME);
     }
 
