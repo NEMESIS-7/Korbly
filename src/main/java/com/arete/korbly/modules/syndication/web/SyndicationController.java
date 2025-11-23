@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.syndication.web;
 
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
@@ -11,6 +12,7 @@ import com.arete.korbly.modules.syndication.mapper.AllocationMapper;
 import com.arete.korbly.modules.syndication.service.SyndicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/syndication")
 public class SyndicationController {
@@ -27,17 +30,20 @@ public class SyndicationController {
     private final JWTService jwtService;
     private final HttpServletRequest httpServletRequest;
     private final AllocationMapper allocationMapper;
+    private final GetUser getUser;
 
     public SyndicationController(SyndicationService syndicationService,
                                  AppUserRepository appUserRepository,
                                  JWTService jwtService,
                                  HttpServletRequest httpServletRequest,
-                                 AllocationMapper allocationMapper) {
+                                 AllocationMapper allocationMapper,
+                                 GetUser getUser) {
         this.syndicationService = syndicationService;
         this.appUserRepository = appUserRepository;
         this.jwtService = jwtService;
         this.httpServletRequest = httpServletRequest;
         this.allocationMapper = allocationMapper;
+        this.getUser = getUser;
     }
 
     //Deal APIs
@@ -59,7 +65,8 @@ public class SyndicationController {
 
     @GetMapping("/sme/get-deals")
     public Page<DealDTO> getSmeDeals(Pageable pageable){
-        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
+        log.info("authenticated user(SME) ID: {}", appUserId);
         return syndicationService.getSmeDeals(appUserId, pageable);
     }
 

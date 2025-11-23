@@ -104,8 +104,9 @@ public class SyndicationService implements ISyndicationService{
     }
 
     public Page<DealDTO> getSmeDeals(UUID appUserId, Pageable pageable){
+
         SME sme = smeRepository.findByAppUserUserId(appUserId)
-                .orElseThrow(() -> new SMENotFound("Sme witho user ID: " + appUserId + " not found"));
+                .orElseThrow(() -> new SMENotFound("Sme with user ID: " + appUserId + " not found"));
         log.info("fetching deals for sme with smeID: {}", sme.getSmeId());
         Page<Deal> smeDeals = dealRepository.findBySmeInvolved_SmeId(sme.getSmeId(), pageable);
         return smeDeals.map(syndicationMapper::toDealDTO);

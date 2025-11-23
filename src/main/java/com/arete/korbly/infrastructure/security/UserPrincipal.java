@@ -1,6 +1,7 @@
 package com.arete.korbly.infrastructure.security;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -8,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 public class UserPrincipal implements UserDetails {
     private final Collection<? extends GrantedAuthority> authorities;
     private final AppUser appUser;
