@@ -42,13 +42,17 @@ public class GetUser {
      */
     private void validateAuthentication(Authentication authentication, Class<?> expectedPrincipalClass) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            SecurityContextHolder.clearContext();
             throw new SecurityException("No authenticated session found");
         }
 
         Object principal = authentication.getPrincipal();
+
+        // Check if it's an anonymous user
+        if (principal instanceof String) {
+            throw new SecurityException("User is not authenticated (anonymous)");
+        }
+
         if (!expectedPrincipalClass.isInstance(principal)) {
-            SecurityContextHolder.clearContext();
             throw new SecurityException("Unexpected authentication principal type: " + principal.getClass().getSimpleName());
         }
     }

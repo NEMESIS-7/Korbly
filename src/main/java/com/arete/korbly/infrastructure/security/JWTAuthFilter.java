@@ -36,7 +36,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         String token = getTokenFromAuthorizationHeader(request);
         System.out.println("token from auth header: " + token);
 
-
         // If no token in header, try to get from cookie
         if (token == null) {
             token = getTokenFromCookie(request.getCookies());
@@ -49,18 +48,17 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        try{
+        try {
             final String userEmail = jwtService.extractUserEmail(token);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            if (userEmail != null && authentication == null){
+            if (userEmail != null && authentication == null) {
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(userEmail);
                 final String userType = jwtService.extractUserType(token);
                 List<SimpleGrantedAuthority> userAuthorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userType));
 
-
-                if (jwtService.validateToken(token, userDetails)){
+                if (jwtService.validateToken(token, userDetails)) {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -68,11 +66,12 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                     );
 
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 }
             }
             filterChain.doFilter(request, response);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
@@ -86,7 +85,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
 
     private String getTokenFromCookie(Cookie[] cookies) {
         if (cookies != null) {
