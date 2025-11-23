@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.termsheet.web;
 
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.termsheet.dto.TermSheetDTO;
 import com.arete.korbly.modules.termsheet.dto.TermSheetResponse;
 import com.arete.korbly.modules.termsheet.service.TermSheetService;
@@ -17,23 +18,22 @@ import java.util.UUID;
 public class TermSheetController {
 
     private final TermSheetService termSheetService;
-    private final JWTService jwtService;
+    private final GetUser getUser;
 
-    public TermSheetController(TermSheetService termSheetService,
-                               JWTService jwtService) {
+    public TermSheetController(TermSheetService termSheetService, GetUser getUser) {
         this.termSheetService = termSheetService;
-        this.jwtService = jwtService;
+        this.getUser = getUser;
     }
 
-    private UUID getAppUserId(HttpServletRequest request) {
+/*    private UUID getAppUserId(HttpServletRequest request) {
         UUID appUserId = jwtService.extractAppUserId(request);
         System.out.println("app user ID: " + appUserId);
         return appUserId;
-    }
+    }*/
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody TermSheetDTO dto, HttpServletRequest request) {
-        UUID createdByUserId = getAppUserId(request);
+        UUID createdByUserId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(termSheetService.createTermSheet(dto, createdByUserId), HttpStatus.OK);
     }
 
@@ -43,7 +43,7 @@ public class TermSheetController {
             @RequestBody TermSheetDTO dto,
             HttpServletRequest request
     ) {
-        UUID amendedBy = getAppUserId(request);
+        UUID amendedBy = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(termSheetService.amendTermSheet(parentId, dto, amendedBy), HttpStatus.OK);
     }
 
@@ -92,7 +92,7 @@ public class TermSheetController {
             HttpServletRequest request
     ) {
 
-        UUID signedByUserId = getAppUserId(request);
+        UUID signedByUserId = getUser.getCurrentAuthenticatedUserId();
         termSheetService.signTermSheet(termSheetId, signedByUserId);
         return new ResponseEntity<>("Termsheet signed successfully", HttpStatus.OK);
     }

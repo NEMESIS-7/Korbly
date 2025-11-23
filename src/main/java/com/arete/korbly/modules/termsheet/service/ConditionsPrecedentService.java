@@ -2,10 +2,10 @@ package com.arete.korbly.modules.termsheet.service;
 
 import com.arete.korbly.infrastructure.integrations.S3FileUploadService;
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.domain.AppUser;
 import com.arete.korbly.modules.shared.enums.DeleteYn;
 import com.arete.korbly.modules.shared.enums.UploadFileResponse;
-import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import com.arete.korbly.modules.termsheet.domain.ConditionsPrecedent;
 import com.arete.korbly.modules.termsheet.domain.TermSheet;
@@ -38,6 +38,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
     private final JWTService jwtService;
     private final AppUserRepository appUserRepository;
     private final S3FileUploadService fileUploadService;
+    private final GetUser getUser;
 
     public ConditionsPrecedentService(ConditionsPrecedentRepository conditionsPrecedentRepository,
                                       ConditionPrecedentMapper conditionPrecedentMapper,
@@ -45,7 +46,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
                                       HttpServletRequest request,
                                       JWTService jwtService,
                                       AppUserRepository appUserRepository,
-                                      S3FileUploadService fileUploadService) {
+                                      S3FileUploadService fileUploadService, GetUser getUser) {
         this.conditionsPrecedentRepository = conditionsPrecedentRepository;
         this.conditionPrecedentMapper = conditionPrecedentMapper;
         this.termSheetRepository = termSheetRepository;
@@ -53,6 +54,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
         this.jwtService = jwtService;
         this.appUserRepository = appUserRepository;
         this.fileUploadService = fileUploadService;
+        this.getUser = getUser;
     }
 
     private UUID extractAppUserId(HttpServletRequest request) {
@@ -65,16 +67,13 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional
-    public CPResponse addCondition(UUID sheetId, CPRequest dto, MultipartFile evidenceFile, HttpServletRequest request) throws IOException {
+    public CPResponse addCondition(UUID sheetId, CPRequest dto, MultipartFile evidenceFile) throws IOException {
         // Fetch the TermSheet
         TermSheet termSheet = termSheetRepository.findById(sheetId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + sheetId + " not found"));
 
         // Extract current user
-        UUID currentUserId = extractAppUserId(request);
-        AppUser currentUser = getAppUser(currentUserId)
-                .orElseThrow(() -> new UserNotFound("User not found"));
-
+        AppUser currentUser = getUser.getCurrentAuthenticatedUser();
         if (conditionsPrecedentRepository.existsBySheetAndCodeAndDeleteYn(termSheet, dto.cpCode(), DeleteYn.N)) {
             throw new ConflictException("CP already exists for this term sheet");
         }
@@ -106,7 +105,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional
-    public CPResponse updateCondition(UUID cpId, ConditionPrecedentDTO dto, HttpServletRequest request) {
+    public CPResponse updateCondition(UUID cpId, ConditionPrecedentDTO dto) {
         // Fetch the condition
         ConditionsPrecedent condition = conditionsPrecedentRepository.findById(cpId)
                 .orElseThrow(() -> new InvalidUpdate("Condition precedent with ID: " + cpId + " not found"));
@@ -143,7 +142,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional
-    public void updateStatus(UUID cpId, CPStatus status, UUID approvedByUserId, HttpServletRequest request) {
+    public void updateStatus(UUID cpId, CPStatus status, UUID approvedByUserId) {
         // Fetch the condition
         ConditionsPrecedent condition = conditionsPrecedentRepository.findById(cpId)
                 .orElseThrow(() -> new InvalidUpdate("Condition precedent with ID: " + cpId + " not found"));
@@ -176,7 +175,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional(readOnly = true)
-    public CPResponse getCondition(UUID cpId, HttpServletRequest request) {
+    public CPResponse getCondition(UUID cpId) {
         // Fetch the condition
         ConditionsPrecedent condition = conditionsPrecedentRepository.findById(cpId)
                 .orElseThrow(() -> new InvalidUpdate("Condition precedent with ID: " + cpId + " not found"));
@@ -191,7 +190,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CPResponse> getConditionsForSheet(UUID sheetId, HttpServletRequest request) {
+    public List<CPResponse> getConditionsForSheet(UUID sheetId) {
         // Verify term sheet exists
         TermSheet termSheet = termSheetRepository.findById(sheetId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + sheetId + " not found"));
@@ -205,7 +204,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional
-    public void waiveCondition(UUID cpId, String waiverReason, UUID approvedByUserId, HttpServletRequest request) {
+    public void waiveCondition(UUID cpId, String waiverReason, UUID approvedByUserId) {
         // Fetch the condition
         ConditionsPrecedent condition = conditionsPrecedentRepository.findById(cpId)
                 .orElseThrow(() -> new InvalidUpdate("Condition precedent with ID: " + cpId + " not found"));
@@ -234,7 +233,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional
-    public void attachEvidence(UUID cpId, MultipartFile file, HttpServletRequest request) throws IOException {
+    public void attachEvidence(UUID cpId, MultipartFile file) throws IOException {
         // Fetch the condition
         ConditionsPrecedent condition = conditionsPrecedentRepository.findById(cpId)
                 .orElseThrow(() -> new InvalidUpdate("Condition precedent with ID: " + cpId + " not found"));
@@ -263,7 +262,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
     @Override
     @Transactional
-    public void markAsDeleted(UUID cpId, HttpServletRequest request) {
+    public void markAsDeleted(UUID cpId) {
         // Fetch the condition
         ConditionsPrecedent condition = conditionsPrecedentRepository.findById(cpId)
                 .orElseThrow(() -> new InvalidUpdate("Condition precedent with ID: " + cpId + " not found"));

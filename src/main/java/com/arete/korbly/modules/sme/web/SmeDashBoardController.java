@@ -1,12 +1,10 @@
 package com.arete.korbly.modules.sme.web;
 
-import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.exceptions.SMENotFound;
 import com.arete.korbly.modules.sme.domain.SME;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import com.arete.korbly.modules.sme.service.SmeDashboardService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,56 +12,33 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/smes")
 public class SmeDashBoardController {
 
     private final SmeDashboardService service;
-    private final JWTService jwtService;
-    private final HttpServletRequest httpServletRequest;
     private final SMERepository smeRepository;
+    private final GetUser getUser;
 
     public SmeDashBoardController(SmeDashboardService service,
-                                  JWTService jwtService,
-                                  HttpServletRequest httpServletRequest,
-                                  SMERepository smeRepository) {
+                                  SMERepository smeRepository, GetUser getUser) {
         this.service = service;
-        this.jwtService = jwtService;
-        this.httpServletRequest = httpServletRequest;
+        this.getUser = getUser;
         this.smeRepository = smeRepository;
     }
 
-    private UUID getAppUserId(HttpServletRequest request){
+/*    private UUID getAppUserId(HttpServletRequest request){
         return  jwtService.extractAppUserId(request);
-    }
+    }*/
 
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard(
             @RequestParam(required = false) Integer rangeMonths
     ) {
-        String authHeader = httpServletRequest.getHeader("Authorization");
+        Optional<SME> sme = smeRepository.findByAppUserUserId(getUser.getCurrentAuthenticatedUserId());
 
-        // Guard clause - this is the key fix
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("auth header: " + authHeader);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or invalid Authorization header");
-        }
-
-        String token = authHeader.substring(7);
-
-        if (token.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Empty token");
-        }
-
-        System.out.println("token: " + token);
-
-        Optional<SME> sme = smeRepository.findByAppUserUserId(jwtService.extractAppUserId(token));
-
-        if(sme.isEmpty()){
+        if (sme.isEmpty()) {
             throw new SMENotFound();
         }
 
