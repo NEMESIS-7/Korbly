@@ -50,13 +50,13 @@ public class SyndicationMapper {
 
     public DealDTO toDealDTO(Deal deal) {
         return new DealDTO(
+                deal.getDealId(),
                 deal.getDealTitle(),
                 deal.getDealDescription(),
                 deal.getDealStatus(),
                 deal.getCurrency(),
                 deal.getSmeInvolved().getSmeId(),
-                deal.getTranches() != null
-                        ? deal.getTranches().stream()
+                deal.getTranches() != null ? deal.getTranches().stream()
                         .map(this::toTrancheDTO)
                         .toList()
                         : null,

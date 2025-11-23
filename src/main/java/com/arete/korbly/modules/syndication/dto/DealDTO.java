@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.UUID;
 
 public record DealDTO(
+
+        UUID dealId,
+
         @NotBlank
         @Size(max = 150)
         String dealTitle,
