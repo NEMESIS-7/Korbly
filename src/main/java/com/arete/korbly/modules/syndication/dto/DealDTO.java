@@ -25,9 +25,6 @@ public record DealDTO(
         DealStatus dealStatus,
 
         DealCurrency currency,
-
-        UUID smeInvolved,
-
         List<TrancheDTO> tranches,
 
         @NotNull

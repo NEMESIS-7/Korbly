@@ -66,8 +66,8 @@ public class SyndicationService implements ISyndicationService{
     @Override
     @Transactional
     public DealDTO createDeal(DealDTO dealDTO, AppUser createdBy) {
-        SME smeInvolved = smeRepository.findSMEBySmeId(dealDTO.smeInvolved())
-                .orElseThrow(() -> new SMENotFound("SME account with ID: " + dealDTO.smeInvolved() + " not found."));
+        SME smeInvolved = smeRepository.findByAppUserId(createdBy.getUserId())
+                .orElseThrow(() -> new SMENotFound("SME account with app user ID: " + createdBy.getUserId() + " not found."));
         Deal newDeal = Deal.builder()
                 .dealTitle(dealDTO.dealTitle())
                 .dealDescription(dealDTO.dealDescription())
