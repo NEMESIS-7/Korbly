@@ -55,7 +55,6 @@ public class SyndicationMapper {
                 deal.getDealDescription(),
                 deal.getDealStatus(),
                 deal.getCurrency(),
-                deal.getSmeInvolved().getSmeId(),
                 deal.getTranches() != null ? deal.getTranches().stream()
                         .map(this::toTrancheDTO)
                         .toList()
