@@ -66,6 +66,7 @@ public class SyndicationMapper {
 
     public TrancheDTO toTrancheDTO(Tranche tranche) {
         return new TrancheDTO(
+                tranche.getTrancheId(),
                 tranche.getTrancheType(),
                 tranche.getAmount(),
                 BigDecimal.valueOf(tranche.getInterestRate()),
