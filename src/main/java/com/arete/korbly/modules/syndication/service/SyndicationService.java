@@ -223,6 +223,7 @@ public class SyndicationService implements ISyndicationService{
     public List<TrancheDTO> getSMETranches(UUID smeId){
         return trancheRepository.findBySME(smeId)
                 .stream()
+                .filter(tranche -> tranche.getDeleteYn().equals(DeleteYn.N))
                 .map(syndicationMapper::toTrancheDTO)
                 .toList();
     }
