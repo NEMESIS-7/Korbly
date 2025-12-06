@@ -1,12 +1,14 @@
 package com.arete.korbly.modules.credit.util;
 
 import com.arete.korbly.modules.credit.dto.FinancialsDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Component
+@Slf4j
 public class AltmanScoreCalculator {
 
     public BigDecimal calculate(FinancialsDTO dto) {
