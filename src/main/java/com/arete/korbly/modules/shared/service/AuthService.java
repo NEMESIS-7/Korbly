@@ -27,6 +27,7 @@ import com.arete.korbly.modules.sme.dto.SMEDTO;
 import com.arete.korbly.modules.sme.mapper.SMEMapper;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class AuthService {
     private final AppUserRepository appUserRepository;
     private final JWTService jwtService;
@@ -137,6 +139,7 @@ public class AuthService {
             MultipartFile businessPlan,
             MultipartFile taxClearanceCert
     ) throws IOException {
+
         AppUser sme = AppUser.builder()
                 .primaryContactEmail(smeApplicationDTO.primaryContactEmail())
                 .userType(UserType.BUSINESS)
@@ -178,12 +181,12 @@ public class AuthService {
 
         appUserRepository.save(sme);
         smeRepository.save(newSME);
-        smeEvaluation(newSME, smeApplicationDTO);
+//        smeEvaluation(newSME, smeApplicationDTO);
         return smeMapper.smeEntityToSMEDto(newSME);
     }
 
     protected void smeEvaluation(SME sme, SMEApplicationDTO applicationDTO) {
-        System.out.println("sme financials id auth service: " + applicationDTO.smeFinancials());
+        log.info("sme financials in auth service: {}", applicationDTO.smeFinancials());
         FinancialsDTO dto = applicationDTO.smeFinancials();
         creditEvaluationService.evaluateAndSave(sme.getSmeId(), dto);
     }

@@ -6,7 +6,6 @@ import com.arete.korbly.modules.termsheet.dto.ConditionPrecedentDTO;
 import com.arete.korbly.modules.termsheet.enums.CPStatus;
 import com.arete.korbly.modules.termsheet.service.IConditionsPrecedentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,10 +37,9 @@ public class ConditionsPrecedentController {
     public ResponseEntity<CPResponse> addCondition(
             @PathVariable UUID sheetId,
             @Valid @RequestPart(name = "request") String request,
-            @RequestPart(name = "evidence", required = false) MultipartFile evidenceFile,
-            HttpServletRequest httpRequest) throws IOException {
+            @RequestPart(name = "evidence", required = false) MultipartFile evidenceFile) throws IOException {
         CPRequest cpRequest = objectMapper.readValue(request, CPRequest.class);
-        CPResponse response = conditionsPrecedentService.addCondition(sheetId, cpRequest, evidenceFile,httpRequest);
+        CPResponse response = conditionsPrecedentService.addCondition(sheetId, cpRequest, evidenceFile);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -52,10 +50,9 @@ public class ConditionsPrecedentController {
     @PutMapping("/{cpId}")
     public ResponseEntity<CPResponse> updateCondition(
             @PathVariable UUID cpId,
-            @Valid @RequestBody ConditionPrecedentDTO dto,
-            HttpServletRequest httpRequest) {
+            @Valid @RequestBody ConditionPrecedentDTO dto) {
 
-        CPResponse response = conditionsPrecedentService.updateCondition(cpId, dto, httpRequest);
+        CPResponse response = conditionsPrecedentService.updateCondition(cpId, dto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -67,10 +64,9 @@ public class ConditionsPrecedentController {
     public ResponseEntity<Map<String, String>> updateStatus(
             @PathVariable UUID cpId,
             @RequestParam CPStatus status,
-            @RequestParam UUID approvedByUserId,
-            HttpServletRequest httpRequest) {
+            @RequestParam UUID approvedByUserId) {
 
-        conditionsPrecedentService.updateStatus(cpId, status, approvedByUserId, httpRequest);
+        conditionsPrecedentService.updateStatus(cpId, status, approvedByUserId);
         return new ResponseEntity<>(Map.of("message", "Status updated successfully"), HttpStatus.OK);
     }
 
@@ -80,10 +76,9 @@ public class ConditionsPrecedentController {
      */
     @GetMapping("/{cpId}")
     public ResponseEntity<CPResponse> getCondition(
-            @PathVariable UUID cpId,
-            HttpServletRequest httpRequest) {
+            @PathVariable UUID cpId) {
 
-        CPResponse response = conditionsPrecedentService.getCondition(cpId, httpRequest);
+        CPResponse response = conditionsPrecedentService.getCondition(cpId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -93,10 +88,9 @@ public class ConditionsPrecedentController {
      */
     @GetMapping("/sheet/{sheetId}")
     public ResponseEntity<List<CPResponse>> getConditionsForSheet(
-            @PathVariable UUID sheetId,
-            HttpServletRequest httpRequest) {
+            @PathVariable UUID sheetId) {
 
-        List<CPResponse> responses = conditionsPrecedentService.getConditionsForSheet(sheetId, httpRequest);
+        List<CPResponse> responses = conditionsPrecedentService.getConditionsForSheet(sheetId);
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
@@ -108,10 +102,9 @@ public class ConditionsPrecedentController {
     public ResponseEntity<Map<String, String>> waiveCondition(
             @PathVariable UUID cpId,
             @RequestParam String waiverReason,
-            @RequestParam UUID approvedByUserId,
-            HttpServletRequest httpRequest) {
+            @RequestParam UUID approvedByUserId) {
 
-        conditionsPrecedentService.waiveCondition(cpId, waiverReason, approvedByUserId, httpRequest);
+        conditionsPrecedentService.waiveCondition(cpId, waiverReason, approvedByUserId);
         return new ResponseEntity<>(Map.of("message", "Condition waived successfully"), HttpStatus.OK);
     }
 
@@ -122,10 +115,9 @@ public class ConditionsPrecedentController {
     @PatchMapping("/{cpId}/evidence")
     public ResponseEntity<Map<String, String>> attachEvidence(
             @PathVariable UUID cpId,
-            @RequestPart(name = "evidenceFile")MultipartFile file,
-            HttpServletRequest httpRequest) throws IOException {
+            @RequestPart(name = "evidenceFile")MultipartFile file) throws IOException {
 
-        conditionsPrecedentService.attachEvidence(cpId, file, httpRequest);
+        conditionsPrecedentService.attachEvidence(cpId, file);
         return new ResponseEntity<>(Map.of("message", "Evidence attached successfully"), HttpStatus.OK);
     }
 
@@ -135,10 +127,9 @@ public class ConditionsPrecedentController {
      */
     @DeleteMapping("/{cpId}")
     public ResponseEntity<Map<String, String>> deleteCondition(
-            @PathVariable UUID cpId,
-            HttpServletRequest httpRequest) {
+            @PathVariable UUID cpId) {
 
-        conditionsPrecedentService.markAsDeleted(cpId, httpRequest);
+        conditionsPrecedentService.markAsDeleted(cpId);
         return new ResponseEntity<>(Map.of("message", "Condition deleted successfully"), HttpStatus.OK);
     }
 }

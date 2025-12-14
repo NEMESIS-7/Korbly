@@ -8,8 +8,12 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.UUID;
 
 public record TrancheDTO(
+        UUID trancheId,
+
+
         @NotNull
         TrancheType trancheType,
 

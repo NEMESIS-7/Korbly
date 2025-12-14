@@ -36,8 +36,15 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/**", "/actuator/**")
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/v1/auth/**", "/actuator/**")
                         .permitAll()
+                        .requestMatchers("/api/v1/credit/**").hasRole("ROLE_SME")
+                        .requestMatchers("/api/v1/investor/**").hasRole("ROLE_INVESTOR")
+                        .requestMatchers("/api/v1/regulator/**").hasRole("ROLE_REGULATOR")
+                        .requestMatchers("/api/v1/documents/**").hasRole("ROLE_ADMIN")
+                        .requestMatchers("/api/v1/smes/**").hasRole("ROLE_SME")
+                        .requestMatchers("api/v1/syndication/create-deal", "api/v1/syndication/deals/get-deal/**", "")
                 )
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(

@@ -1,16 +1,14 @@
 package com.arete.korbly.modules.syndication.web;
 
-import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.exceptions.UserNotFound;
-import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
-import com.arete.korbly.modules.syndication.mapper.AllocationMapper;
 import com.arete.korbly.modules.syndication.service.SyndicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,36 +17,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/syndication")
 public class SyndicationController {
     private final SyndicationService syndicationService;
-    private final AppUserRepository appUserRepository;
-    private final JWTService jwtService;
-    private final HttpServletRequest httpServletRequest;
-    private final AllocationMapper allocationMapper;
+    private final GetUser getUser;
 
-    public SyndicationController(SyndicationService syndicationService,
-                                 AppUserRepository appUserRepository,
-                                 JWTService jwtService,
-                                 HttpServletRequest httpServletRequest,
-                                 AllocationMapper allocationMapper) {
+    public SyndicationController(SyndicationService syndicationService, GetUser getUser) {
         this.syndicationService = syndicationService;
-        this.appUserRepository = appUserRepository;
-        this.jwtService = jwtService;
-        this.httpServletRequest = httpServletRequest;
-        this.allocationMapper = allocationMapper;
+        this.getUser = getUser;
     }
 
     //Deal APIs
     @PostMapping("/create-deal")
     public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO, HttpServletRequest request){
-        String token = httpServletRequest.getHeader("Authorization").substring(7);
-        System.out.println("user token(create deal): " + token);
-
-        UUID createdById = jwtService.extractAppUserId(token);
-        AppUser createdBy = appUserRepository.findAppUserById(createdById)
-                .orElseThrow(() -> new UserNotFound("User with ID: " + createdById + " not found."));
+        AppUser createdBy = getUser.getCurrentAuthenticatedUser();
         return new ResponseEntity<>(syndicationService.createDeal(dealDTO, createdBy), HttpStatus.CREATED);
     }
 
@@ -59,7 +43,8 @@ public class SyndicationController {
 
     @GetMapping("/sme/get-deals")
     public Page<DealDTO> getSmeDeals(Pageable pageable){
-        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
+        log.info("authenticated user(SME) ID: {}", appUserId);
         return syndicationService.getSmeDeals(appUserId, pageable);
     }
 
@@ -88,7 +73,7 @@ public class SyndicationController {
             @Valid @RequestBody TrancheDTO trancheDTO
             ){
         UUID deal = UUID.fromString(dealId);
-        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
 
         return new ResponseEntity<>(syndicationService.createTranche(deal,trancheDTO,appUserId), HttpStatus.OK);
     }
@@ -119,7 +104,7 @@ public class SyndicationController {
 
     @PutMapping("/allocations/{allocationId}/confirm")
     public ResponseEntity<?> confirmAllocation(@PathVariable UUID allocationId){
-        UUID adminId = jwtService.extractAppUserId(httpServletRequest);
+        UUID adminId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(syndicationService.confirmAllocation(allocationId, adminId), HttpStatus.OK);
     }
 

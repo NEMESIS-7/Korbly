@@ -66,8 +66,9 @@ public class SyndicationService implements ISyndicationService{
     @Override
     @Transactional
     public DealDTO createDeal(DealDTO dealDTO, AppUser createdBy) {
-        SME smeInvolved = smeRepository.findSMEBySmeId(dealDTO.smeInvolved())
-                .orElseThrow(() -> new SMENotFound("SME account with ID: " + dealDTO.smeInvolved() + " not found."));
+        SME smeInvolved = smeRepository.findByAppUserId(createdBy.getUserId())
+                .orElseThrow(() -> new SMENotFound("SME account with app user ID: " + createdBy.getUserId() + " not found."));
+        log.info("sme ID: {}, app user ID: {}", createdBy.getUserId(), smeInvolved.getSmeId());
         Deal newDeal = Deal.builder()
                 .dealTitle(dealDTO.dealTitle())
                 .dealDescription(dealDTO.dealDescription())
@@ -104,8 +105,9 @@ public class SyndicationService implements ISyndicationService{
     }
 
     public Page<DealDTO> getSmeDeals(UUID appUserId, Pageable pageable){
+
         SME sme = smeRepository.findByAppUserUserId(appUserId)
-                .orElseThrow(() -> new SMENotFound("Sme witho user ID: " + appUserId + " not found"));
+                .orElseThrow(() -> new SMENotFound("Sme with user ID: " + appUserId + " not found"));
         log.info("fetching deals for sme with smeID: {}", sme.getSmeId());
         Page<Deal> smeDeals = dealRepository.findBySmeInvolved_SmeId(sme.getSmeId(), pageable);
         return smeDeals.map(syndicationMapper::toDealDTO);
@@ -221,6 +223,7 @@ public class SyndicationService implements ISyndicationService{
     public List<TrancheDTO> getSMETranches(UUID smeId){
         return trancheRepository.findBySME(smeId)
                 .stream()
+                .filter(tranche -> tranche.getDeleteYn().equals(DeleteYn.N))
                 .map(syndicationMapper::toTrancheDTO)
                 .toList();
     }

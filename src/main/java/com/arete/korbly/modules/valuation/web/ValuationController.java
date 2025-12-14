@@ -1,11 +1,10 @@
 package com.arete.korbly.modules.valuation.web;
 
-import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.valuation.dto.ValuationPreviewRequest;
 import com.arete.korbly.modules.valuation.dto.ValuationPreviewResponse;
 import com.arete.korbly.modules.valuation.dto.ValuationSummaryResponse;
 import com.arete.korbly.modules.valuation.service.ValuationService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,21 +17,17 @@ import java.util.UUID;
 public class ValuationController {
 
     private final ValuationService valuationService;
-    private final JWTService jwtService;
-    private final HttpServletRequest httpServletRequest;
+    private final GetUser getUser;
 
-    public ValuationController(ValuationService valuationService,
-                               JWTService jwtService,
-                               HttpServletRequest httpServletRequest) {
+    public ValuationController(ValuationService valuationService, GetUser getUser) {
         this.valuationService = valuationService;
-        this.jwtService = jwtService;
-        this.httpServletRequest = httpServletRequest;
+        this.getUser = getUser;
     }
 
     @PostMapping("/preview")
     public ResponseEntity<ValuationPreviewResponse> preview(
             @Valid @RequestBody ValuationPreviewRequest request) {
-        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(
                 valuationService.preview(request, appUserId), HttpStatus.OK
         );
@@ -41,7 +36,7 @@ public class ValuationController {
     @PostMapping("/commit/{assumptionId}")
     public ResponseEntity<ValuationSummaryResponse> commit(
             @PathVariable UUID assumptionId) {
-        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
         return ResponseEntity.ok(
                 valuationService.commit(assumptionId, appUserId)
         );
