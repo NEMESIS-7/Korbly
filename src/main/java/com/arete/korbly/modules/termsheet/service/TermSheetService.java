@@ -185,9 +185,7 @@ public class TermSheetService implements ITermSheetService {
 
     @Override
     public TermSheetResponse getLatestVersion(UUID parentId) {
-        return termSheetMapper
-                .toResponse(termSheetRepository
-                        .getLatestVersion(parentId));
+        return termSheetMapper.toResponse(termSheetRepository.getLatestVersion(parentId));
     }
 
     @Override
@@ -256,6 +254,9 @@ public class TermSheetService implements ITermSheetService {
                 .stream()
                 .map(termSheetMapper::toResponse)
                 .toList();
+        if(content.isEmpty()){
+            content = List.of();
+        }
         return new PageImpl<>(content, pageable, content.size());
     }
 

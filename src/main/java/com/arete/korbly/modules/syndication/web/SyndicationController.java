@@ -97,7 +97,7 @@ public class SyndicationController {
     }
 
     //Allocation APIs
-    @PostMapping("/allocations")
+    @PostMapping("/allocations/create")
     public ResponseEntity<?> allocateTrancheToInvestor(@RequestBody @Valid CreateAllocationDTO allocationDTO){
         return new ResponseEntity<>(syndicationService.allocateTrancheToInvestor(allocationDTO), HttpStatus.OK);
     }
@@ -108,7 +108,7 @@ public class SyndicationController {
         return new ResponseEntity<>(syndicationService.confirmAllocation(allocationId, adminId), HttpStatus.OK);
     }
 
-    @GetMapping("/allocations")
+    @GetMapping("/allocations/get-all")
     public ResponseEntity<?> getAllAllocations(Pageable pageable){
         return new ResponseEntity<>(syndicationService.getAllAllocations(pageable), HttpStatus.OK);
     }
