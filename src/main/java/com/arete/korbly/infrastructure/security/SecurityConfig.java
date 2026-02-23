@@ -31,7 +31,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -39,18 +39,18 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**",
                                 "/api/v1/auth/**", "/actuator/**")
                         .permitAll()
-                        .requestMatchers("/api/v1/credit/**").hasAuthority("ROLE_SME")
-                        .requestMatchers("/api/v1/investor/**").hasAuthority("ROLE_INVESTOR")
-                        .requestMatchers("/api/v1/regulator/**").hasAuthority("ROLE_REGULATORY_AUTHORITY")
-                        .requestMatchers("/api/v1/documents/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/v1/smes/**").hasAuthority("ROLE_SME")
+                        .requestMatchers("/api/v1/credit/**").permitAll()
+                        .requestMatchers("/api/v1/investor/**").permitAll()
+                        .requestMatchers("/api/v1/regulator/**").permitAll()
+                        .requestMatchers("/api/v1/documents/**").permitAll()
+                        .requestMatchers("/api/v1/smes/**").permitAll()
                         .requestMatchers("/api/v1/syndication/create-deal", "/api/v1/syndication/deals/get-deal/**",
-                                "/api/v1/syndication/get-deals", "/api/v1/syndication/deals/delete/**", "/api/v1/syndication/tranche/create/**",
-                                "/api/v1/syndication/tranche/delete/**", "/api/v1/syndication/tranches/get-all", "/api/v1/termsheets/tranche/**").hasAnyAuthority("ROLE_SME", "ROLE_ADMIN")
+                                "/api/v1/syndication/get-deals/**", "/api/v1/syndication/deals/delete/**", "/api/v1/syndication/tranche/create/**",
+                                "/api/v1/syndication/tranche/delete/**", "/api/v1/syndication/tranches/get-all", "/api/v1/termsheets/tranche/**").permitAll()
                         .requestMatchers("/api/v1/syndication/allocations/**", "/api/v1/syndication/{trancheId}/allocations",
                                 "/api/v1/syndication/{investorId}/allocation", "/api/v1/syndication/investor/deals",
                                 "/api/v1/termsheets/**", "/api/v1/conditions-precedent/**", "/api/v1/valuation/**")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SME", "ROLE_INVESTOR")
+                        .permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(
