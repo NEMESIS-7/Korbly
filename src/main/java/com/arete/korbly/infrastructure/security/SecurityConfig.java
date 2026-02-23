@@ -49,7 +49,7 @@ public class SecurityConfig {
                                 "/api/v1/syndication/tranche/delete/**", "/api/v1/syndication/tranches/get-all", "/api/v1/termsheets/tranche/**").permitAll()
                         .requestMatchers("/api/v1/syndication/allocations/**", "/api/v1/syndication/{trancheId}/allocations",
                                 "/api/v1/syndication/{investorId}/allocation", "/api/v1/syndication/investor/deals",
-                                "/api/v1/termsheets/**", "/api/v1/conditions-precedent/**", "/api/v1/valuation/**")
+                                "/api/v1/termsheets/**", "/api/v1/conditions-precedent/**", "/api/v1/valuation/**", "/api/v1/syndication/sme/get-deals")
                         .permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
