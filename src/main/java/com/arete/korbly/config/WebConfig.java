@@ -19,7 +19,7 @@ public class WebConfig {
         configuration.addAllowedOriginPattern("*");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
-        configuration.setAllowedOrigins(List.of("https://korbly.vercel.app", "http://localhost:5173", "http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("https://korbly.vercel.app", "http://localhost:5173", "http://localhost:5174", "https://pvc.app.korblygroup.com"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
