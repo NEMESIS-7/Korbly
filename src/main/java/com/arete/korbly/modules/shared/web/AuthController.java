@@ -80,6 +80,7 @@ public class AuthController {
         return new ResponseEntity<>(authService.verifyUserLogin(request, response), HttpStatus.OK);
     }
 
+    @Deprecated(forRemoval = true)
     @PostMapping("/v2/verify")
     public ResponseEntity<?> verifyUser(@RequestBody VerificationRequest request){
         return new ResponseEntity<>(authService.loginResponse(request), HttpStatus.OK);

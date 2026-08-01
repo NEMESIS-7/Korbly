@@ -113,6 +113,7 @@ public class SyndicationService implements ISyndicationService{
         return smeDeals.map(syndicationMapper::toDealDTO);
     }
 
+    @Transactional
     @Override
     public void deleteDeal(UUID dealId) {
         Deal dealToDelete = dealRepository.findDealById(dealId)
@@ -232,7 +233,7 @@ public class SyndicationService implements ISyndicationService{
     public AllocationDTO allocateTrancheToInvestor(CreateAllocationDTO details) {
         Tranche trancheToUpdate = allocationRepository.findByTrancheIdForUpdate(details.trancheId())
                 .orElseThrow(TrancheNotFound::new);
-        if(trancheToUpdate != null && trancheToUpdate.getDeleteYn().equals(DeleteYn.Y)){
+        if(trancheToUpdate.getDeleteYn().equals(DeleteYn.Y)){
             throw new InvalidTrancheUpdate();
         }
 
@@ -296,6 +297,7 @@ public class SyndicationService implements ISyndicationService{
                 );
     }
 
+    @Transactional
     public AllocationDTO confirmAllocation(UUID allocationId, UUID adminId){
         Allocation confirmedAllocation = allocationRepository.findById(allocationId)
                 .orElseThrow(AllocationNotFound::new);
@@ -310,16 +312,11 @@ public class SyndicationService implements ISyndicationService{
         );
     }
 
+    @Transactional
     public Set<InvestorDealViewDTO> getOpenDealsForInvestors(Pageable pageable){
-        // 1. Fetch all OPEN deals
-        // 2. For each deal, fetch its tranches
-        // 3. For each tranche, calculate allocated amount and remaining capacity
-        // 4. Filter out tranches with remainingCapacity <= 0
-        // 5. If deal still has at least one tranche, map deal + tranche views to DTO
-        // 6. Collect into Set<InvestorDealViewDTO> and return
         Set<InvestorDealViewDTO> result = new HashSet<>();
 
-        List<Deal> openDeals = dealRepository.getOpenDeals();
+        List<Deal> openDeals = dealRepository.getOpenDeals(pageable).getContent();
         for(Deal deal : openDeals) {
             List<InvestorTrancheViewDTO> eligibleTranches = new ArrayList<>();
 
@@ -329,13 +326,9 @@ public class SyndicationService implements ISyndicationService{
                 BigDecimal allocatedSoFar = BigDecimal.ZERO;
                 for (Allocation allocation : allocations) {
                     allocatedSoFar = allocatedSoFar.add(allocation.getAmount());
-                    System.out.println("amount allocated: " + allocatedSoFar);
                 }
 
-                System.out.println("allocated so far: " + allocatedSoFar);
                 BigDecimal remainingCapacity = tranche.getAmount().subtract(allocatedSoFar);
-
-                System.out.println("remaining capacity: " + remainingCapacity);
 
                 if (remainingCapacity.compareTo(BigDecimal.ZERO) > 0) {
                     InvestorTrancheViewDTO trancheViewDTO = new InvestorTrancheViewDTO(

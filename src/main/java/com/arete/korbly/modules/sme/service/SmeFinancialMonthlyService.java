@@ -9,6 +9,7 @@ import com.arete.korbly.modules.sme.dto.SfmSeriesResponse;
 import com.arete.korbly.modules.sme.dto.SfmUpsertDTO;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import com.arete.korbly.modules.sme.persistence.SmeFinancialsRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class SmeFinancialMonthlyService {
         this.smeRepo = smeRepo;
     }
 
+    @CacheEvict(value = "dashboard", key = "#smeId")
     public SmeMonthlyFinancials upsert(SfmUpsertDTO dto, UUID smeId) {
         SME sme = smeRepo.findSMEBySmeId(smeId)
                 .orElseThrow(() -> new SMENotFound("SME not found"));
@@ -52,6 +54,7 @@ public class SmeFinancialMonthlyService {
         return repo.save(row);
     }
 
+    @CacheEvict(value = "dashboard", key = "#smeId")
     @Transactional
     public List<SmeMonthlyFinancials> bulkUpsert(SfmBulkUpsertDTO bulk, UUID smeId) {
         SME sme = smeRepo.findSMEBySmeId(smeId)

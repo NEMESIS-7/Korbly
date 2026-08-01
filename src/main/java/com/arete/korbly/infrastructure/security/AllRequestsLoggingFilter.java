@@ -34,7 +34,6 @@ public class AllRequestsLoggingFilter extends OncePerRequestFilter {
                 .timestamp(Timestamp.from(Instant.now()))
                 .method(request.getMethod())
                 .uri(request.getRequestURI())
-                .queryParams(request.getParameterMap())
                 .clientIp(request.getRemoteAddr())
                 .userAgent(request.getHeader("User-Agent"))
                 .statusCode(response.getStatus())

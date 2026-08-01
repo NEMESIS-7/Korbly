@@ -18,7 +18,7 @@ public class OTPService {
     }
 
     public void storeOTP(String email, String otp) {
-        stringRedisTemplate.opsForValue().set("OTP: " + email, otp, 15, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(email, otp, EXPIRE_TIME_MINUTES, TimeUnit.MINUTES);
     }
 
     public String getOTP(String email) {
@@ -29,6 +29,11 @@ public class OTPService {
         if (email != null) {
             stringRedisTemplate.delete(email);
         }
+    }
+
+    public boolean checkOTP(String email, String otp) {
+        String stored = stringRedisTemplate.opsForValue().get(email);
+        return stored != null && stored.equals(otp);
     }
 
     public String generateAndStoreOTP(String email) {

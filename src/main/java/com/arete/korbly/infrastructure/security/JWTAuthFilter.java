@@ -17,7 +17,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JWTAuthFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
@@ -32,15 +34,10 @@ public class JWTAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        // Try to get token from Authorization header first
         String token = getTokenFromAuthorizationHeader(request);
-        System.out.println("token from auth header: " + token);
-
-        // If no token in header, try to get from cookie
         if (token == null) {
             token = getTokenFromCookie(request.getCookies());
         }
-        System.out.println("token from cookie/header: " + token);
 
         // If no token found anywhere, continue without authentication
         if (token == null) {
@@ -72,16 +69,17 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             }
             filterChain.doFilter(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+            log.warn("JWT validation failed: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Invalid or expired token\"}");
         }
     }
 
     private String getTokenFromAuthorizationHeader(HttpServletRequest request) {
         final String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            System.out.println("auth header: " + authorizationHeader);
-            return authorizationHeader.substring(7); // Remove "Bearer " prefix
+            return authorizationHeader.substring(7);
         }
         return null;
     }

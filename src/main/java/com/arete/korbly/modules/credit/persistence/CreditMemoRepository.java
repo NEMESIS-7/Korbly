@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -18,7 +19,7 @@ public interface CreditMemoRepository extends JpaRepository<CreditMemo, UUID> {
     List<CreditMemo> findSmeCreditScores(UUID smeId);
 
     @Query("select c from CreditMemo c where c.creditMemoId = :creditMemoId and c.deleteYn = 'N'")
-    CreditMemo findCreditMemoById(UUID creditMemoId);
+    Optional<CreditMemo> findCreditMemoById(UUID creditMemoId);
 
     @Transactional
     @Modifying

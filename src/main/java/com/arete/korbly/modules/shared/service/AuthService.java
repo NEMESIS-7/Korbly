@@ -253,53 +253,59 @@ public class AuthService {
     }
 
 
+    @Transactional
     public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response) {
-        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())) {
-            AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
-                    .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
-            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
-            user.setIsVerified(true);
-            user.setLastLogin(Timestamp.from(Instant.now()));
-
-            appUserRepository.save(user);
-
-            ResponseCookie jwtCookie = ResponseCookie.from("JWTAccess_token", accessToken)
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(3600)
-                    .build();
-            response.setHeader("Set-Cookie", jwtCookie.toString());
-            return new VerificationResponse(
-                    true,
-                    user.getUserType()
-            );
-        } else {
+        if (!otpService.checkOTP(request.primaryContactEmail(), request.otp())) {
             throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
+        AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
+                .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
+        String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
+        user.setIsVerified(true);
+        user.setLastLogin(Timestamp.from(Instant.now()));
+        appUserRepository.save(user);
+
+        // Delete OTP only after successful DB save
+        otpService.deleteOTP(request.primaryContactEmail());
+
+        ResponseCookie jwtCookie = ResponseCookie.from("JWTAccess_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(3600)
+                .build();
+        response.setHeader("Set-Cookie", jwtCookie.toString());
+        return new VerificationResponse(
+                true,
+                user.getUserType().name(),
+                user.getPrimaryContactEmail()
+        );
     }
 
+    @Transactional
     public LoginResponse loginResponse(VerificationRequest request) {
-        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())) {
-            AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
-                    .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found"));
-
-            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
-            user.setIsVerified(true);
-            user.setLastLogin(Timestamp.from(Instant.now()));
-
-            appUserRepository.save(user);
-            return new LoginResponse(
-                    true,
-                    user.getUserType().name(),
-                    user.getPrimaryContactEmail(),
-                    user.getPrimaryContactEmail(),
-                    accessToken
-            );
-        } else {
+        if (!otpService.checkOTP(request.primaryContactEmail(), request.otp())) {
             throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
+        AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
+                .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found"));
+
+        String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
+        user.setIsVerified(true);
+        user.setLastLogin(Timestamp.from(Instant.now()));
+        appUserRepository.save(user);
+
+        // Delete OTP only after successful DB save
+        otpService.deleteOTP(request.primaryContactEmail());
+
+        return new LoginResponse(
+                true,
+                user.getUserType().name(),
+                user.getPrimaryContactEmail(),
+                user.getPrimaryContactEmail(),
+                accessToken
+        );
     }
 
     public AppUser verifyUser(VerifyUser verifyUser) {
@@ -336,8 +342,9 @@ public class AuthService {
 
 
     public UploadFileResponse uploadFile(MultipartFile file) throws IOException {
-        UploadFileResponse result = fileUploadService.uploadFile("test", file);
-        System.out.println("file upload result: " + result.toString());
+        String key = "uploads/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        UploadFileResponse result = fileUploadService.uploadFile(key, file);
+        log.info("file upload result: {}", result);
         return result;
     }
 

@@ -8,12 +8,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final AppUserRepository appUserRepository;
@@ -24,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("identifier: " + username);
+        log.debug("Loading user by username: {}", username);
         Optional<AppUser> appUser = appUserRepository.findByPrimaryContactEmail((username));
         if (appUser.isPresent()){
             return new UserPrincipal(getAuthorities(appUser.get()), appUser.get());

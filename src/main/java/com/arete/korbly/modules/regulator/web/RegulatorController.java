@@ -45,7 +45,6 @@ public class RegulatorController {
     @PostMapping("/create")
     public ResponseEntity<?> createRegulator(@RequestBody CreateRegulatorDTO dto, HttpServletRequest request) {
         UUID adminId = getUser.getCurrentAuthenticatedUserId();
-        System.out.println("userId: " + adminId);
 
         return new ResponseEntity<>(regulatorService.createRegulator(dto, adminId), HttpStatus.CREATED);
     }

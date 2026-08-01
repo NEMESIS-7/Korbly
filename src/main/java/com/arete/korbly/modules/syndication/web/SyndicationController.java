@@ -1,7 +1,12 @@
 package com.arete.korbly.modules.syndication.web;
 
+import com.arete.korbly.modules.investor.domain.Investor;
+import com.arete.korbly.modules.investor.persistence.InvestorRepository;
 import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.enums.UserType;
+import com.arete.korbly.modules.shared.exceptions.InvestorNotFound;
+import com.arete.korbly.modules.shared.exceptions.UnauthorizedAccess;
 import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
@@ -23,10 +28,12 @@ import java.util.UUID;
 public class SyndicationController {
     private final SyndicationService syndicationService;
     private final GetUser getUser;
+    private final InvestorRepository investorRepository;
 
-    public SyndicationController(SyndicationService syndicationService, GetUser getUser) {
+    public SyndicationController(SyndicationService syndicationService, GetUser getUser, InvestorRepository investorRepository) {
         this.syndicationService = syndicationService;
         this.getUser = getUser;
+        this.investorRepository = investorRepository;
     }
 
     //Deal APIs
@@ -120,7 +127,20 @@ public class SyndicationController {
 
     @GetMapping("/{investorId}/allocation")
     public ResponseEntity<?> findAllocationsByInvestorId(@PathVariable UUID investorId, Pageable pageable){
+        AppUser currentUser = getUser.getCurrentAuthenticatedUser();
+        if (!isPrivilegedUser(currentUser)) {
+            Investor investor = investorRepository.findById(investorId)
+                    .orElseThrow(InvestorNotFound::new);
+            if (!investor.getAppUser().getUserId().equals(currentUser.getUserId())) {
+                throw new UnauthorizedAccess("You are not authorized to view these allocations.");
+            }
+        }
         return new ResponseEntity<>(syndicationService.findAllocationsByInvestorId(investorId, pageable), HttpStatus.OK);
+    }
+
+    private boolean isPrivilegedUser(AppUser user) {
+        UserType type = user.getUserType();
+        return type == UserType.ADMIN || type == UserType.REGULATORY_AUTHORITY;
     }
 
     @GetMapping("/investor/deals")

@@ -63,8 +63,4 @@ public class CreditMemo {
         this.deleteYn = DeleteYn.N;
     }
 
-    @PreUpdate
-    protected void onUpdate(){
-        this.deleteYn = DeleteYn.N;
-    }
 }

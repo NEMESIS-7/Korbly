@@ -43,13 +43,8 @@ public class SmeDashboardService {
         LocalDate nowMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate fromMonth = nowMonth.minusMonths(window - 1);
 
-        List<RevenuePoint> revenue = smeRepository != null
-                ? smeRepository.revenueSeries(smeId, fromMonth)
-                : List.of();
-
-        BigDecimal avgOCF = smeRepository != null
-                ? smeRepository.avgOperatingCashflow(smeId, fromMonth)
-                : BigDecimal.ZERO;
+        List<RevenuePoint> revenue = smeRepository.revenueSeries(smeId, fromMonth);
+        BigDecimal avgOCF = smeRepository.avgOperatingCashflow(smeId, fromMonth);
 
         long openApps = smeRepository.countOpenApplications(smeId);
 
@@ -76,7 +71,7 @@ public class SmeDashboardService {
     private String classify(CreditHealthDTO h) {
         double dscr = nz(h.dscr());
         double icr = nz(h.icr());
-        double z   = h.altmanZ().doubleValue();
+        double z   = h.altmanZ() != null ? h.altmanZ().doubleValue() : 0.0;
         // Strong if DSCR ≥ 1.5, AltmanZ ≥ 2.6, ICR ≥ 3
         // Weak if DSCR < 1.1 or AltmanZ < 1.8; else Moderate
         boolean strong = dscr >= 1.5 && z >= 2.6 && icr >= 3.0;

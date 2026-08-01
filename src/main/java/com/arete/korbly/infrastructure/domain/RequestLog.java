@@ -2,11 +2,7 @@ package com.arete.korbly.infrastructure.domain;
 
 import jakarta.persistence.*;
 import lombok.Builder;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.sql.Timestamp;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -25,10 +21,6 @@ public class RequestLog {
     private Timestamp timestamp;
     private String method;
     private String uri;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, String[]> queryParams;
-
     private String clientIp;
     private String userAgent;
     private Integer statusCode;
@@ -133,12 +125,11 @@ public class RequestLog {
     public RequestLog() {
     }
 
-    public RequestLog(UUID id, Timestamp timestamp, String method, String uri, Map<String, String[]> queryParams, String clientIp, String userAgent, Integer statusCode, Long durationMs, String username, String roles, String referer) {
+    public RequestLog(UUID id, Timestamp timestamp, String method, String uri, String clientIp, String userAgent, Integer statusCode, Long durationMs, String username, String roles, String referer) {
         this.id = id;
         this.timestamp = timestamp;
         this.method = method;
         this.uri = uri;
-        this.queryParams = queryParams;
         this.clientIp = clientIp;
         this.userAgent = userAgent;
         this.statusCode = statusCode;
@@ -146,14 +137,6 @@ public class RequestLog {
         this.username = username;
         this.roles = roles;
         this.referer = referer;
-    }
-
-    public Map<String, String[]> getQueryParams() {
-        return queryParams;
-    }
-
-    public void setQueryParams(Map<String, String[]> queryParams) {
-        this.queryParams = queryParams;
     }
 
     public void setStatusCode(Integer statusCode) {

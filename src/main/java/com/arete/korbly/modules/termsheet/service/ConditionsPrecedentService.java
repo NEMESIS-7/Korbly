@@ -250,7 +250,7 @@ public class ConditionsPrecedentService implements IConditionsPrecedentService {
 
 
         if (file != null) {
-            String filePath = "conditions-precedent/" + condition.getCpId() + "/evidence/" + condition.getTitle();
+            String filePath = "conditions-precedent/" + condition.getCpId() + "/evidence/" + condition.getTitle().replace(" ", "_");
             UploadFileResponse fileResponse = fileUploadService.uploadFile(filePath, file);
             condition.setEvidenceFileKey(fileResponse.key());
         } else {

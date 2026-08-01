@@ -1,6 +1,7 @@
 package com.arete.korbly.modules.valuation.service;
 
 import com.arete.korbly.modules.shared.domain.AppUser;
+import com.arete.korbly.modules.shared.exceptions.UserNotFound;
 import com.arete.korbly.modules.shared.persistence.AppUserRepository;
 import com.arete.korbly.modules.valuation.domain.CashFlowAssumption;
 import com.arete.korbly.modules.valuation.domain.ValuationAssumption;
@@ -41,12 +42,12 @@ public class ValuationService implements IValuationService{
     @Override
     @Transactional
     public ValuationPreviewResponse preview(ValuationPreviewRequest request, UUID requestedByUserId) {
-        //todo check for user access rights
+        AppUser requester = appUserRepo.findById(requestedByUserId)
+                .orElseThrow(() -> new UserNotFound("User with ID: " + requestedByUserId + " not found."));
 
         ValuationAssumption assumption = valuationMapper.toAssumptionEntity(request);
-        AppUser requester = appUserRepo.findById(requestedByUserId).orElse(null);
         assumption.setCreatedBy(requester);
-        assumption = assumptionRepo.save(assumption); // save snapshot
+        assumption = assumptionRepo.save(assumption);
 
         CashFlowAssumption cashflowAssumption = ValuationMapper.toCashflowAssumption(assumption);
         List<CashflowRow> cashflowSchedule = cashflowEngine.buildSchedule(cashflowAssumption);
@@ -83,7 +84,8 @@ public class ValuationService implements IValuationService{
     @Override
     @Transactional
     public ValuationSummaryResponse commit(UUID valuationAssumptionId, UUID committedByUserId) {
-        //todo check for user access rights
+        appUserRepo.findById(committedByUserId)
+                .orElseThrow(() -> new UserNotFound("User with ID: " + committedByUserId + " not found."));
 
         ValuationAssumption assumption = assumptionRepo.findById(valuationAssumptionId)
                 .orElseThrow(() -> new IllegalArgumentException("ValuationAssumption not found"));

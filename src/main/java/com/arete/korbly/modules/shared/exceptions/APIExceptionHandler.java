@@ -171,10 +171,10 @@ public class APIExceptionHandler {
     @ExceptionHandler(UserNotFound.class)
     public ResponseEntity<?> handleUserNotFound(UserNotFound e, HttpServletRequest request){
         APIException apiException = new APIException(
-                "Invalid",
-                HttpStatus.UNAUTHORIZED.value(),
+                "Not Found",
+                HttpStatus.NOT_FOUND.value(),
                 new APIException.APIError(
-                        HttpStatus.UNAUTHORIZED,
+                        HttpStatus.NOT_FOUND,
                         e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
@@ -183,7 +183,7 @@ public class APIExceptionHandler {
         Sentry.setTag("requestId", request.getRequestId());
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
-        return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(PSQLException.class)
@@ -279,10 +279,10 @@ public class APIExceptionHandler {
     @ExceptionHandler(TermSheetNotFound.class)
     public ResponseEntity<?> handleTermSheetNotFound(TermSheetNotFound e, HttpServletRequest request){
         APIException apiException = new APIException(
-                "error",
-                HttpStatus.BAD_REQUEST.value(),
+                "Not Found",
+                HttpStatus.NOT_FOUND.value(),
                 new APIException.APIError(
-                        HttpStatus.BAD_REQUEST,
+                        HttpStatus.NOT_FOUND,
                         e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
@@ -291,7 +291,7 @@ public class APIExceptionHandler {
         Sentry.setTag("requestId", request.getRequestId());
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
-        return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(InvalidUpdate.class)
@@ -390,9 +390,9 @@ public class APIExceptionHandler {
     public ResponseEntity<?> handleUnauthorizedAccess(UnauthorizedAccess e, HttpServletRequest request){
         APIException apiException = new APIException(
                 "Error",
-                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.FORBIDDEN.value(),
                 new APIException.APIError(
-                        HttpStatus.UNAUTHORIZED,
+                        HttpStatus.FORBIDDEN,
                         e.getMessage(),
                         Timestamp.from(Instant.now())
                 ),
@@ -401,6 +401,6 @@ public class APIExceptionHandler {
         Sentry.setTag("requestId", request.getRequestId());
         Sentry.setExtra("path", request.getRequestURI());
         Sentry.captureException(e);
-        return new ResponseEntity<>(apiException, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(apiException, HttpStatus.FORBIDDEN);
     }
 }
