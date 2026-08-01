@@ -270,9 +270,5 @@ public class SME {
         this.deleteYn = DeleteYn.N;
     }
 
-    @PreUpdate
-    protected void onUpdate(){
-        this.deleteYn = DeleteYn.N;
-    }
 
 }

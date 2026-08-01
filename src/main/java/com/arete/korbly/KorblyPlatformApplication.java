@@ -2,30 +2,36 @@ package com.arete.korbly;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableTransactionManagement
+@EnableCaching
 public class KorblyPlatformApplication {
 
 	public static void main(String[] args) {
-		System.setProperty("SPRING_DATASOURCE_URL", System.getenv("SPRING_DATASOURCE_URL"));
-		System.setProperty("SPRING_DATASOURCE_USERNAME", System.getenv("SPRING_DATASOURCE_USERNAME"));
-		System.setProperty("SPRING_DATASOURCE_PASSWORD", System.getenv("SPRING_DATASOURCE_PASSWORD"));
-
-		System.setProperty("CLOUDINARY_NAME", System.getenv("CLOUDINARY_NAME"));
-		System.setProperty("CLOUDINARY_API_SECRET", System.getenv("CLOUDINARY_API_SECRET"));
-		System.setProperty("CLOUDINARY_API_KEY", System.getenv("CLOUDINARY_API_KEY"));
-		System.setProperty("JWT_SECRET", System.getenv("JWT_SECRET"));
-
-		System.setProperty("SPRING_MAIL_USERNAME", System.getenv("SPRING_MAIL_USERNAME"));
-		System.setProperty("SPRING_MAIL_PASSWORD", System.getenv("SPRING_MAIL_PASSWORD"));
-
-		System.setProperty("REDIS_URL", System.getenv("REDIS_URL"));
-
-		System.setProperty("SENTRY_AUTH_TOKEN", System.getenv("SENTRY_AUTH_TOKEN"));
+		setPropertyIfPresent("SPRING_DATASOURCE_URL");
+		setPropertyIfPresent("SPRING_DATASOURCE_USERNAME");
+		setPropertyIfPresent("SPRING_DATASOURCE_PASSWORD");
+		setPropertyIfPresent("CLOUDINARY_NAME");
+		setPropertyIfPresent("CLOUDINARY_API_SECRET");
+		setPropertyIfPresent("CLOUDINARY_API_KEY");
+		setPropertyIfPresent("JWT_SECRET");
+		setPropertyIfPresent("SPRING_MAIL_USERNAME");
+		setPropertyIfPresent("SPRING_MAIL_PASSWORD");
+		setPropertyIfPresent("REDIS_URL");
+		setPropertyIfPresent("SENTRY_AUTH_TOKEN");
+		setPropertyIfPresent("BUCKET_NAME");
 
 		SpringApplication.run(KorblyPlatformApplication.class, args);
+	}
+
+	private static void setPropertyIfPresent(String key) {
+		String value = System.getenv(key);
+		if (value != null) {
+			System.setProperty(key, value);
+		}
 	}
 
 	/*@Bean

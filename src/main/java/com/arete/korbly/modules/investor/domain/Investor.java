@@ -35,10 +35,10 @@ public class Investor {
     @Column(nullable = false, unique = true)
     private String registrationNumber;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private LocalDate dateEstablished;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String institutionalAddress;
 
     @Column(nullable = false, unique = true)
@@ -117,11 +117,6 @@ public class Investor {
 
     @PrePersist
     protected void onCreate(){
-        this.deleteYn = DeleteYn.N;
-    }
-
-    @PreUpdate
-    protected void onUpdate(){
         this.deleteYn = DeleteYn.N;
     }
 

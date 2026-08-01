@@ -15,6 +15,9 @@ import java.util.UUID;
 @Repository
 public interface InvestorRepository extends JpaRepository<Investor, UUID> {
 
+    @Query("select i from Investor i where i.investorId = :investorId")
+    Optional<Investor> findByInvestorId(UUID investorId);
+
     @Query("""
             select new com.arete.korbly.modules.investor.dto.PortfolioSummaryDTO(
                 a.investorId.investorId,

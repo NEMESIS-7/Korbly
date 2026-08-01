@@ -33,6 +33,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -72,6 +73,7 @@ public class TermSheetService implements ITermSheetService {
     }
 
     @Override
+    @Transactional
     public TermSheetResponse createTermSheet(TermSheetDTO dto, UUID createdByUserId) {
         Optional<AppUser> createdBy = appUserRepository.findAppUserById(createdByUserId);
         if (createdBy.isEmpty()) {
@@ -109,7 +111,7 @@ public class TermSheetService implements ITermSheetService {
         }
         termSheetRepository.save(newTermsheet);
 
-        if (dto.conditionsPrecedent().isEmpty()) {
+        if (dto.conditionsPrecedent() == null || dto.conditionsPrecedent().isEmpty()) {
             newTermsheet.setConditionsPrecedent(defaultCpGenerator.generateDefaults(newTermsheet));
         } else {
             Set<CPCode> provided = new LinkedHashSet<>();
@@ -143,6 +145,7 @@ public class TermSheetService implements ITermSheetService {
     }
 
     @Override
+    @Transactional
     public TermSheetResponse amendTermSheet(UUID parentId, TermSheetDTO dto, UUID amendedBy) {
         TermSheet existingVersion = termSheetRepository.findLatestTermsheet(parentId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet with parent ID: " + parentId + " not found"));
@@ -185,17 +188,37 @@ public class TermSheetService implements ITermSheetService {
 
     @Override
     public TermSheetResponse getLatestVersion(UUID parentId) {
-        return termSheetMapper
-                .toResponse(termSheetRepository
-                        .getLatestVersion(parentId));
+        return termSheetMapper.toResponse(
+                termSheetRepository.getLatestVersion(parentId)
+                        .orElseThrow(() -> new TermSheetNotFound("No latest version found for parent ID: " + parentId))
+        );
     }
 
     @Override
     public TermSheetResponse updateTermSheet(UUID termSheetId, TermSheetDTO dto) {
-        return null;
+        TermSheet sheet = termSheetRepository.findById(termSheetId)
+                .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + termSheetId + " not found"));
+
+        if (dto.loanAmount() != null) sheet.setLoanAmount(dto.loanAmount());
+        if (dto.interestRate() != null) sheet.setInterestRate(dto.interestRate());
+        if (dto.maturityDate() != null) sheet.setMaturityDate(dto.maturityDate());
+        if (dto.amortizationStructure() != null) sheet.setAmortizationStructure(dto.amortizationStructure());
+        if (dto.prepaymentOption() != null) sheet.setPrepaymentOption(dto.prepaymentOption());
+        if (dto.offeringPeriod() != null) sheet.setOfferingPeriod(dto.offeringPeriod());
+        if (dto.guarantees() != null) sheet.setGuarantees(dto.guarantees());
+        if (dto.collateral() != null) sheet.setCollateral(dto.collateral());
+        if (dto.seniority() != null) sheet.setSeniority(dto.seniority());
+        if (dto.covenants() != null) sheet.setCovenants(dto.covenants());
+        if (dto.eventsOfDefault() != null) sheet.setEventsOfDefault(dto.eventsOfDefault());
+        if (dto.defaultRate() != null) sheet.setDefaultRate(dto.defaultRate());
+        if (dto.gracePeriods() != null) sheet.setGracePeriods(dto.gracePeriods());
+        if (dto.governingLaw() != null) sheet.setGoverningLaw(dto.governingLaw());
+
+        return termSheetMapper.toResponse(termSheetRepository.save(sheet));
     }
 
     @Override
+    @Transactional
     public void signTermSheet(UUID termSheetId, UUID signedByUserId) {
 
         AppUser signingUser = appUserRepository.findById(signedByUserId)
@@ -203,10 +226,10 @@ public class TermSheetService implements ITermSheetService {
         TermSheet sheetToSign = termSheetRepository.findById(termSheetId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + termSheetId + " not found."));
         if (!sheetToSign.getSheetStatus().equals(TermSheetStatus.DRAFT)) {
-            throw new TermSheetNotFound("Term sheet with ID: " + termSheetId + " has been signed already.");
+            throw new ConflictException("Term sheet with ID: " + termSheetId + " has been signed already.");
         }
         if (!sheetToSign.getLatest().equals(Boolean.TRUE)) {
-            throw new TermSheetNotFound("This is not the latest version of this term sheet hence it cannot be signed.");
+            throw new ConflictException("This is not the latest version of this term sheet hence it cannot be signed.");
         }
         sheetToSign.setSignedBy(signingUser);
         sheetToSign.setSheetStatus(TermSheetStatus.EXECUTED);
@@ -227,16 +250,18 @@ public class TermSheetService implements ITermSheetService {
     }
 
     @Override
+    @Transactional
     public void markAsLatest(UUID termSheetId) {
         TermSheet sheetToMark = termSheetRepository.findById(termSheetId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet with ID: " + termSheetId + " not found"));
+
+        TermSheet parent = sheetToMark.getParent();
+        if (parent == null) {
+            throw new TermSheetNotFound("Term sheet with ID: " + termSheetId + " has no parent and cannot be marked as latest.");
+        }
+
+        termSheetRepository.markAllAsNotLatest(parent.getTermSheetId());
         sheetToMark.setLatest(Boolean.TRUE);
-
-
-        termSheetRepository.markAllAsNotLatest(sheetToMark.getParent().getTermSheetId());
-        sheetToMark.setLatest(true);
-        termSheetRepository.save(sheetToMark);
-
         termSheetRepository.save(sheetToMark);
     }
 
@@ -256,6 +281,9 @@ public class TermSheetService implements ITermSheetService {
                 .stream()
                 .map(termSheetMapper::toResponse)
                 .toList();
+        if(content.isEmpty()){
+            content = List.of();
+        }
         return new PageImpl<>(content, pageable, content.size());
     }
 

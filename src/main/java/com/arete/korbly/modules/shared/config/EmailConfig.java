@@ -9,7 +9,6 @@ import java.util.Properties;
 
 @Configuration
 public class EmailConfig {
-
     private final String emailUsername = System.getenv("SPRING_MAIL_USERNAME");
     private final String password = System.getenv("SPRING_MAIL_PASSWORD");
 

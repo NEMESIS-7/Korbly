@@ -6,6 +6,8 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.arete.korbly.infrastructure.integrations.OTPService;
 import com.arete.korbly.infrastructure.integrations.S3FileUploadService;
 import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.credit.application.CreditEvaluationService;
+import com.arete.korbly.modules.credit.dto.FinancialsDTO;
 import com.arete.korbly.modules.investor.domain.Investor;
 import com.arete.korbly.modules.investor.dto.InvestorApplicationDTO;
 import com.arete.korbly.modules.investor.dto.InvestorDTO;
@@ -25,6 +27,7 @@ import com.arete.korbly.modules.sme.dto.SMEDTO;
 import com.arete.korbly.modules.sme.mapper.SMEMapper;
 import com.arete.korbly.modules.sme.persistence.SMERepository;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,12 +36,14 @@ import org.thymeleaf.context.Context;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class AuthService {
     private final AppUserRepository appUserRepository;
     private final JWTService jwtService;
@@ -50,7 +55,7 @@ public class AuthService {
     private final SMEMapper smeMapper;
     private final OTPService otpService;
     private final EmailService emailService;
-
+    private final CreditEvaluationService creditEvaluationService;
 
 
     public AuthService(JWTService jwtService,
@@ -61,7 +66,10 @@ public class AuthService {
                        SMERepository smeRepository,
                        SMEMapper smeMapper,
                        OTPService otpService,
-                       AppUserRepository appUserRepository1, EmailService emailService) {
+                       AppUserRepository appUserRepository1,
+                       EmailService emailService,
+                       CreditEvaluationService creditEvaluationService
+    ) {
         this.jwtService = jwtService;
         this.investorMapper = investorMapper;
         this.investorRepository = investorRepository;
@@ -72,6 +80,7 @@ public class AuthService {
         this.otpService = otpService;
         this.appUserRepository = appUserRepository1;
         this.emailService = emailService;
+        this.creditEvaluationService = creditEvaluationService;
     }
 
     @Transactional
@@ -105,7 +114,7 @@ public class AuthService {
         //1. cert of incorporation
         UploadFileResponse incCert = uploadInvestorFiles(baseKey + "incorporation.pdf", certOfIncorporation);
         //2. latestAuditedFinancialStatements
-        UploadFileResponse invFile = uploadInvestorFiles(baseKey + "lastAuditedFinancialStatement.pdf",latestAuditedFinancialStatements);
+        UploadFileResponse invFile = uploadInvestorFiles(baseKey + "lastAuditedFinancialStatement.pdf", latestAuditedFinancialStatements);
         //3. investmentPolicyStatement
         UploadFileResponse policyStmt = uploadInvestorFiles(baseKey + "investmentPolicyStatement.pdf", investmentPolicyStatement);
         //4. boardResolution
@@ -122,6 +131,7 @@ public class AuthService {
 
     }
 
+    @Transactional
     public SMEDTO onboardSME(
             SMEApplicationDTO smeApplicationDTO,
             MultipartFile certOfIncorporation,
@@ -129,6 +139,7 @@ public class AuthService {
             MultipartFile businessPlan,
             MultipartFile taxClearanceCert
     ) throws IOException {
+
         AppUser sme = AppUser.builder()
                 .primaryContactEmail(smeApplicationDTO.primaryContactEmail())
                 .userType(UserType.BUSINESS)
@@ -170,7 +181,14 @@ public class AuthService {
 
         appUserRepository.save(sme);
         smeRepository.save(newSME);
+//        smeEvaluation(newSME, smeApplicationDTO);
         return smeMapper.smeEntityToSMEDto(newSME);
+    }
+
+    protected void smeEvaluation(SME sme, SMEApplicationDTO applicationDTO) {
+        log.info("sme financials in auth service: {}", applicationDTO.smeFinancials());
+        FinancialsDTO dto = applicationDTO.smeFinancials();
+        creditEvaluationService.evaluateAndSave(sme.getSmeId(), dto);
     }
 
     public String generatePresignedDownloadUrl(String fileKey, int expirationMinutes) {
@@ -235,69 +253,78 @@ public class AuthService {
     }
 
 
-    public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response){
-        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
-            AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
-                    .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
-            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
-            user.setIsVerified(true);
+    @Transactional
+    public VerificationResponse verifyUserLogin(VerificationRequest request, HttpServletResponse response) {
+        if (!otpService.checkOTP(request.primaryContactEmail(), request.otp())) {
+            throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
+        }
+        AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
+                .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found."));
+        String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
+        user.setIsVerified(true);
+        user.setLastLogin(Timestamp.from(Instant.now()));
+        appUserRepository.save(user);
 
-            appUserRepository.save(user);
+        // Delete OTP only after successful DB save
+        otpService.deleteOTP(request.primaryContactEmail());
 
-            ResponseCookie jwtCookie = ResponseCookie.from("JWTAccess_token", accessToken)
+        ResponseCookie jwtCookie = ResponseCookie.from("JWTAccess_token", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
                 .path("/")
                 .maxAge(3600)
                 .build();
-            response.setHeader("Set-Cookie", jwtCookie.toString());
-            return new VerificationResponse(
-                    true,
-                    user.getUserType()
-            );
-        }else{
-            throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
-        }
+        response.setHeader("Set-Cookie", jwtCookie.toString());
+        return new VerificationResponse(
+                true,
+                user.getUserType().name(),
+                user.getPrimaryContactEmail()
+        );
     }
 
-    public LoginResponse loginResponse(VerificationRequest request){
-        if (otpService.verifyOTP(request.primaryContactEmail(), request.otp())){
-            AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
-                    .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found"));
-
-            String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(),user.getUserId());
-            user.setIsVerified(true);
-
-            appUserRepository.save(user);
-            return new LoginResponse(
-                    true,
-                    user.getUserType().name(),
-                    user.getPrimaryContactEmail(),
-                    user.getPrimaryContactEmail(),
-                    accessToken
-            );
-        }else{
+    @Transactional
+    public LoginResponse loginResponse(VerificationRequest request) {
+        if (!otpService.checkOTP(request.primaryContactEmail(), request.otp())) {
             throw new InvalidOTP("User provided a wrong or has already used this OTP. Please try again");
         }
+        AppUser user = appUserRepository.findByPrimaryContactEmail(request.primaryContactEmail())
+                .orElseThrow(() -> new UserNotFound("User with email: " + request.primaryContactEmail() + " not found"));
+
+        String accessToken = jwtService.generateAccessToken(user.getPrimaryContactEmail(), user.getUserType(), user.getUserId());
+        user.setIsVerified(true);
+        user.setLastLogin(Timestamp.from(Instant.now()));
+        appUserRepository.save(user);
+
+        // Delete OTP only after successful DB save
+        otpService.deleteOTP(request.primaryContactEmail());
+
+        return new LoginResponse(
+                true,
+                user.getUserType().name(),
+                user.getPrimaryContactEmail(),
+                user.getPrimaryContactEmail(),
+                accessToken
+        );
     }
 
-    public AppUser verifyUser(VerifyUser verifyUser){
+    public AppUser verifyUser(VerifyUser verifyUser) {
         Optional<AppUser> user = appUserRepository.findByPrimaryContactEmail(verifyUser.primaryContactEmail());
-        if (user.isEmpty()){
+        if (user.isEmpty()) {
             throw new UserNotFound("User with email: " + verifyUser.primaryContactEmail() + " not found.");
-        }else{
+        } else {
             AppUser appUser = user.get();
             appUser.setIsVerified(true);
+
 
             appUserRepository.save(appUser);
         }
         return user.get();
     }
 
-    public void verify(VerifyUser user){
+    public void verify(VerifyUser user) {
         Optional<AppUser> appUser = appUserRepository.findByPrimaryContactEmail(user.primaryContactEmail());
-        if (appUser.isPresent()){
+        if (appUser.isPresent()) {
             AppUser appUser1 = appUser.get();
             String otp = otpService.generateAndStoreOTP((appUser1.getPrimaryContactEmail()));
             EmailRequest request = new EmailRequest(
@@ -308,16 +335,16 @@ public class AuthService {
             Context context = new Context();
             context.setVariable("otp", otp);
             emailService.sendEmail(request, "LoginTemplate", context);
-        }else{
+        } else {
             throw new UserNotFound("User with email: " + user.primaryContactEmail() + " not found.");
         }
     }
 
 
-
     public UploadFileResponse uploadFile(MultipartFile file) throws IOException {
-        UploadFileResponse result = fileUploadService.uploadFile("test", file);
-        System.out.println("file upload result: " + result.toString());
+        String key = "uploads/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        UploadFileResponse result = fileUploadService.uploadFile(key, file);
+        log.info("file upload result: {}", result);
         return result;
     }
 

@@ -50,14 +50,14 @@ public class CreditEvaluationService {
     }
 
     public CreditMemoDTO evaluateAndSave(UUID smeId, FinancialsDTO financialsDTO) {
+        SME sme = smeRepository.findById(smeId)
+                .orElseThrow(() -> new SMENotFound("SME account with ID: " + smeId + " not found."));
         try {
-            SME sme = smeRepository.findById(smeId)
-                    .orElseThrow(() -> new SMENotFound("SME account with ID: " + smeId + " not found."));
-
             BigDecimal altmanScore = altmanZScoreCalculator.calculate(financialsDTO);
             BigDecimal ohlsonScore = ohlsonScoreCalculator.calculate(financialsDTO);
             BigDecimal dscr = dscrCalculator.calculate(financialsDTO);
-            BigDecimal icr = icrCalculator.calculate(financialsDTO, null);
+            // Use total debt as a proxy for interest-bearing obligations when explicit interest expense is unavailable
+            BigDecimal icr = icrCalculator.calculate(financialsDTO, financialsDTO.totalDebt());
 
             boolean fxMismatchFlag = detectFxMismatch(financialsDTO);
             boolean weakCoverageFlag = detectWeakCoverage(financialsDTO);
@@ -74,12 +74,12 @@ public class CreditEvaluationService {
                     .weakCoverageFlag(weakCoverageFlag)
                     .fxMisMatchFlag(fxMismatchFlag)
                     .cyclicalVulnerabilityFlag(cyclicalVulnerabilityFlag)
-                    .esgRiskRating(determineEsgRisk(sme)) // placeholder or dynamically evaluated later
+                    .esgRiskRating(determineEsgRisk(sme))
                     .build();
 
             return creditDTOMapper
                     .creditMemoEntityToCreditMemoDTO(creditMemoRepository.save(memo));
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             throw new InvalidFinancials("User entered invalid financial data.");
         }
     }
@@ -100,10 +100,9 @@ public class CreditEvaluationService {
     }
 
     public CreditMemoDTO findCreditMemoById(UUID creditMemoId){
-        return creditDTOMapper
-                .creditMemoEntityToCreditMemoDTO(
-                        creditMemoRepository
-                                .findCreditMemoById(creditMemoId));
+        CreditMemo memo = creditMemoRepository.findCreditMemoById(creditMemoId)
+                .orElseThrow(() -> new IllegalArgumentException("Credit memo with ID: " + creditMemoId + " not found."));
+        return creditDTOMapper.creditMemoEntityToCreditMemoDTO(memo);
     }
 
     public List<CreditMemoDTO> findSMECreditMemos(UUID smeId){
@@ -118,7 +117,7 @@ public class CreditEvaluationService {
 
     private boolean detectWeakCoverage(FinancialsDTO dto) {
         return dto.ebit()
-                .divide(dto.totalAssets(), RoundingMode.HALF_UP)
+                .divide(dto.totalAssets(), 10, RoundingMode.HALF_UP)
                 .compareTo(new BigDecimal("0.05")) < 0;
     }
 

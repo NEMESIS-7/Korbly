@@ -1,16 +1,19 @@
 package com.arete.korbly.modules.syndication.web;
 
-import com.arete.korbly.infrastructure.security.JWTService;
+import com.arete.korbly.modules.investor.domain.Investor;
+import com.arete.korbly.modules.investor.persistence.InvestorRepository;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.domain.AppUser;
-import com.arete.korbly.modules.shared.exceptions.UserNotFound;
-import com.arete.korbly.modules.shared.persistence.AppUserRepository;
+import com.arete.korbly.modules.shared.enums.UserType;
+import com.arete.korbly.modules.shared.exceptions.InvestorNotFound;
+import com.arete.korbly.modules.shared.exceptions.UnauthorizedAccess;
 import com.arete.korbly.modules.syndication.dto.CreateAllocationDTO;
 import com.arete.korbly.modules.syndication.dto.DealDTO;
 import com.arete.korbly.modules.syndication.dto.TrancheDTO;
-import com.arete.korbly.modules.syndication.mapper.AllocationMapper;
 import com.arete.korbly.modules.syndication.service.SyndicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,33 +22,24 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/syndication")
 public class SyndicationController {
     private final SyndicationService syndicationService;
-    private final AppUserRepository appUserRepository;
-    private final JWTService jwtService;
-    private final HttpServletRequest httpServletRequest;
-    private final AllocationMapper allocationMapper;
+    private final GetUser getUser;
+    private final InvestorRepository investorRepository;
 
-    public SyndicationController(SyndicationService syndicationService,
-                                 AppUserRepository appUserRepository,
-                                 JWTService jwtService,
-                                 HttpServletRequest httpServletRequest,
-                                 AllocationMapper allocationMapper) {
+    public SyndicationController(SyndicationService syndicationService, GetUser getUser, InvestorRepository investorRepository) {
         this.syndicationService = syndicationService;
-        this.appUserRepository = appUserRepository;
-        this.jwtService = jwtService;
-        this.httpServletRequest = httpServletRequest;
-        this.allocationMapper = allocationMapper;
+        this.getUser = getUser;
+        this.investorRepository = investorRepository;
     }
 
     //Deal APIs
     @PostMapping("/create-deal")
-    public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO){
-        UUID createdById = jwtService.extractAppUserId(httpServletRequest);
-        AppUser createdBy = appUserRepository.findAppUserById(createdById)
-                .orElseThrow(() -> new UserNotFound("User with ID: " + createdById + " not found."));
+    public ResponseEntity<?> createDeal(@Valid @RequestBody DealDTO dealDTO, HttpServletRequest request){
+        AppUser createdBy = getUser.getCurrentAuthenticatedUser();
         return new ResponseEntity<>(syndicationService.createDeal(dealDTO, createdBy), HttpStatus.CREATED);
     }
 
@@ -54,6 +48,12 @@ public class SyndicationController {
         return syndicationService.getAllDeals(pageable);
     }
 
+    @GetMapping("/sme/get-deals")
+    public Page<DealDTO> getSmeDeals(Pageable pageable){
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
+        log.info("authenticated user(SME) ID: {}", appUserId);
+        return syndicationService.getSmeDeals(appUserId, pageable);
+    }
 
     @PutMapping("/deals/next-stage/{dealId}")
     public ResponseEntity<?> moveToNextStage(@PathVariable String dealId){
@@ -80,7 +80,7 @@ public class SyndicationController {
             @Valid @RequestBody TrancheDTO trancheDTO
             ){
         UUID deal = UUID.fromString(dealId);
-        UUID appUserId = jwtService.extractAppUserId(httpServletRequest);
+        UUID appUserId = getUser.getCurrentAuthenticatedUserId();
 
         return new ResponseEntity<>(syndicationService.createTranche(deal,trancheDTO,appUserId), HttpStatus.OK);
     }
@@ -104,18 +104,18 @@ public class SyndicationController {
     }
 
     //Allocation APIs
-    @PostMapping("/allocations")
+    @PostMapping("/allocations/create")
     public ResponseEntity<?> allocateTrancheToInvestor(@RequestBody @Valid CreateAllocationDTO allocationDTO){
         return new ResponseEntity<>(syndicationService.allocateTrancheToInvestor(allocationDTO), HttpStatus.OK);
     }
 
     @PutMapping("/allocations/{allocationId}/confirm")
     public ResponseEntity<?> confirmAllocation(@PathVariable UUID allocationId){
-        UUID adminId = jwtService.extractAppUserId(httpServletRequest);
+        UUID adminId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(syndicationService.confirmAllocation(allocationId, adminId), HttpStatus.OK);
     }
 
-    @GetMapping("/allocations")
+    @GetMapping("/allocations/get-all")
     public ResponseEntity<?> getAllAllocations(Pageable pageable){
         return new ResponseEntity<>(syndicationService.getAllAllocations(pageable), HttpStatus.OK);
     }
@@ -127,7 +127,20 @@ public class SyndicationController {
 
     @GetMapping("/{investorId}/allocation")
     public ResponseEntity<?> findAllocationsByInvestorId(@PathVariable UUID investorId, Pageable pageable){
+        AppUser currentUser = getUser.getCurrentAuthenticatedUser();
+        if (!isPrivilegedUser(currentUser)) {
+            Investor investor = investorRepository.findById(investorId)
+                    .orElseThrow(InvestorNotFound::new);
+            if (!investor.getAppUser().getUserId().equals(currentUser.getUserId())) {
+                throw new UnauthorizedAccess("You are not authorized to view these allocations.");
+            }
+        }
         return new ResponseEntity<>(syndicationService.findAllocationsByInvestorId(investorId, pageable), HttpStatus.OK);
+    }
+
+    private boolean isPrivilegedUser(AppUser user) {
+        UserType type = user.getUserType();
+        return type == UserType.ADMIN || type == UserType.REGULATORY_AUTHORITY;
     }
 
     @GetMapping("/investor/deals")

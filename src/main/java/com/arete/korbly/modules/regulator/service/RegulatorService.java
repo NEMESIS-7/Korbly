@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ public class RegulatorService implements IRegulatorService {
     }
 
     @Override
+    @Transactional
     public RegulatorDTO createRegulator(CreateRegulatorDTO dto, UUID adminId) {
         AppUser admin = appUserRepository.findAppUserById(adminId)
                 .orElseThrow(() -> new UserNotFound("User account does not exist."));
@@ -130,6 +132,7 @@ public class RegulatorService implements IRegulatorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<RegulatorDealViewDTO> getDealsForRegulator(UUID regulatorId, Pageable pageable) {
         Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
                 .orElseThrow(() -> new UserNotFound("Regulator account not found"));
@@ -148,6 +151,7 @@ public class RegulatorService implements IRegulatorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RegulatorDealViewDTO getDealDetailForRegulator(UUID regulatorId, UUID dealId) {
         //build regulator allocation view
         // build allocator tranche view
@@ -177,7 +181,7 @@ public class RegulatorService implements IRegulatorService {
                 .map(auditLogMapper::entityToDTO)
                 .toList();
 
-        return new PageImpl<>(auditLogDTOS, pageable, auditLogDTOS.size());
+        return new PageImpl<>(auditLogDTOS, pageable, auditLogs.getTotalElements());
     }
 
     @Override
@@ -198,6 +202,7 @@ public class RegulatorService implements IRegulatorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<RegulatorDealViewDTO> searchDeals(UUID regulatorId, SMEIndustry sector, DealStatus status, Pageable pageable) {
         Regulator regulator = regulatorRepository.findByAppUserId(regulatorId)
                 .orElseThrow(() -> new UserNotFound("Regulator account not found"));

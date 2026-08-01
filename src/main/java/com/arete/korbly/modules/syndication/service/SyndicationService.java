@@ -24,6 +24,7 @@ import com.arete.korbly.modules.syndication.persistence.AllocationRepository;
 import com.arete.korbly.modules.syndication.persistence.DealRepository;
 import com.arete.korbly.modules.syndication.persistence.TrancheRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
+@Slf4j
 @Service
 public class SyndicationService implements ISyndicationService{
     private final SMERepository smeRepository;
@@ -64,8 +66,9 @@ public class SyndicationService implements ISyndicationService{
     @Override
     @Transactional
     public DealDTO createDeal(DealDTO dealDTO, AppUser createdBy) {
-        SME smeInvolved = smeRepository.findSMEBySmeId(dealDTO.smeInvolved())
-                .orElseThrow(() -> new SMENotFound("SME account with ID: " + dealDTO.smeInvolved() + " not found."));
+        SME smeInvolved = smeRepository.findByAppUserId(createdBy.getUserId())
+                .orElseThrow(() -> new SMENotFound("SME account with app user ID: " + createdBy.getUserId() + " not found."));
+        log.info("sme ID: {}, app user ID: {}", createdBy.getUserId(), smeInvolved.getSmeId());
         Deal newDeal = Deal.builder()
                 .dealTitle(dealDTO.dealTitle())
                 .dealDescription(dealDTO.dealDescription())
@@ -101,6 +104,16 @@ public class SyndicationService implements ISyndicationService{
         throw new InvalidDealUpdate();
     }
 
+    public Page<DealDTO> getSmeDeals(UUID appUserId, Pageable pageable){
+
+        SME sme = smeRepository.findByAppUserUserId(appUserId)
+                .orElseThrow(() -> new SMENotFound("Sme with user ID: " + appUserId + " not found"));
+        log.info("fetching deals for sme with smeID: {}", sme.getSmeId());
+        Page<Deal> smeDeals = dealRepository.findBySmeInvolved_SmeId(sme.getSmeId(), pageable);
+        return smeDeals.map(syndicationMapper::toDealDTO);
+    }
+
+    @Transactional
     @Override
     public void deleteDeal(UUID dealId) {
         Deal dealToDelete = dealRepository.findDealById(dealId)
@@ -211,6 +224,7 @@ public class SyndicationService implements ISyndicationService{
     public List<TrancheDTO> getSMETranches(UUID smeId){
         return trancheRepository.findBySME(smeId)
                 .stream()
+                .filter(tranche -> tranche.getDeleteYn().equals(DeleteYn.N))
                 .map(syndicationMapper::toTrancheDTO)
                 .toList();
     }
@@ -219,7 +233,7 @@ public class SyndicationService implements ISyndicationService{
     public AllocationDTO allocateTrancheToInvestor(CreateAllocationDTO details) {
         Tranche trancheToUpdate = allocationRepository.findByTrancheIdForUpdate(details.trancheId())
                 .orElseThrow(TrancheNotFound::new);
-        if(trancheToUpdate != null && trancheToUpdate.getDeleteYn().equals(DeleteYn.Y)){
+        if(trancheToUpdate.getDeleteYn().equals(DeleteYn.Y)){
             throw new InvalidTrancheUpdate();
         }
 
@@ -236,8 +250,9 @@ public class SyndicationService implements ISyndicationService{
             throw new InvalidTrancheUpdate("Deal for this tranche is closed");
         }
 
-        Investor investor = investorRepository.findById(details.investorId())
+        Investor investor = investorRepository.findByInvestorId(details.investorId())
                 .orElseThrow(InvestorNotFound::new);
+
         if(Boolean.FALSE.equals(investor.getInvestorVerified())){
             throw new UnverifiedInvestor("Investor is unverified and cannot continue with action");
         }
@@ -282,6 +297,7 @@ public class SyndicationService implements ISyndicationService{
                 );
     }
 
+    @Transactional
     public AllocationDTO confirmAllocation(UUID allocationId, UUID adminId){
         Allocation confirmedAllocation = allocationRepository.findById(allocationId)
                 .orElseThrow(AllocationNotFound::new);
@@ -296,16 +312,11 @@ public class SyndicationService implements ISyndicationService{
         );
     }
 
+    @Transactional
     public Set<InvestorDealViewDTO> getOpenDealsForInvestors(Pageable pageable){
-        // 1. Fetch all OPEN deals
-        // 2. For each deal, fetch its tranches
-        // 3. For each tranche, calculate allocated amount and remaining capacity
-        // 4. Filter out tranches with remainingCapacity <= 0
-        // 5. If deal still has at least one tranche, map deal + tranche views to DTO
-        // 6. Collect into Set<InvestorDealViewDTO> and return
         Set<InvestorDealViewDTO> result = new HashSet<>();
 
-        List<Deal> openDeals = dealRepository.getOpenDeals();
+        List<Deal> openDeals = dealRepository.getOpenDeals(pageable).getContent();
         for(Deal deal : openDeals) {
             List<InvestorTrancheViewDTO> eligibleTranches = new ArrayList<>();
 
@@ -315,13 +326,9 @@ public class SyndicationService implements ISyndicationService{
                 BigDecimal allocatedSoFar = BigDecimal.ZERO;
                 for (Allocation allocation : allocations) {
                     allocatedSoFar = allocatedSoFar.add(allocation.getAmount());
-                    System.out.println("amount allocated: " + allocatedSoFar);
                 }
 
-                System.out.println("allocated so far: " + allocatedSoFar);
                 BigDecimal remainingCapacity = tranche.getAmount().subtract(allocatedSoFar);
-
-                System.out.println("remaining capacity: " + remainingCapacity);
 
                 if (remainingCapacity.compareTo(BigDecimal.ZERO) > 0) {
                     InvestorTrancheViewDTO trancheViewDTO = new InvestorTrancheViewDTO(

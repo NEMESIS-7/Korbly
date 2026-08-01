@@ -1,9 +1,11 @@
 package com.arete.korbly.modules.regulator.web;
 
-import com.arete.korbly.infrastructure.security.JWTService;
-import com.arete.korbly.modules.regulator.dto.*;
+import com.arete.korbly.modules.regulator.dto.AuditLogDTO;
+import com.arete.korbly.modules.regulator.dto.CreateRegulatorDTO;
+import com.arete.korbly.modules.regulator.dto.RegulatorDealViewDTO;
 import com.arete.korbly.modules.regulator.enums.RegulatorStatus;
 import com.arete.korbly.modules.regulator.service.RegulatorService;
+import com.arete.korbly.modules.shared.GetUser;
 import com.arete.korbly.modules.shared.enums.SMEIndustry;
 import com.arete.korbly.modules.syndication.enums.DealStatus;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,15 +21,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/regulator")
 public class RegulatorController {
     private final RegulatorService regulatorService;
-    private final HttpServletRequest request;
-    private final JWTService jwtService;
+    private final GetUser getUser;
 
-    public RegulatorController(RegulatorService regulatorService,
-                               HttpServletRequest request,
-                               JWTService jwtService) {
+    public RegulatorController(RegulatorService regulatorService, GetUser getUser) {
         this.regulatorService = regulatorService;
-        this.request = request;
-        this.jwtService = jwtService;
+        this.getUser = getUser;
     }
 
 //        public ResponseEntity<?> checkout() {
@@ -36,16 +34,17 @@ public class RegulatorController {
 //        UUID userId = jwtService.extractCustomerId(token);
 //        System.out.println("userId from checkout: " + userId);
 
-    private UUID getAppUserId(HttpServletRequest request){
+    /*private UUID getAppUserId(HttpServletRequest request){
         String authHeader = request.getHeader("Authorization");
         String token = authHeader.substring(7);
         System.out.println("token in private method: " + token);
        return jwtService.extractAppUserId(token);
-    }
+    }*/
+
+
     @PostMapping("/create")
     public ResponseEntity<?> createRegulator(@RequestBody CreateRegulatorDTO dto, HttpServletRequest request) {
-        UUID adminId = getAppUserId(request);
-        System.out.println("userId: " + adminId);
+        UUID adminId = getUser.getCurrentAuthenticatedUserId();
 
         return new ResponseEntity<>(regulatorService.createRegulator(dto, adminId), HttpStatus.CREATED);
     }
@@ -57,19 +56,19 @@ public class RegulatorController {
 
     @PutMapping("/status")
     public ResponseEntity<?> updateRegulatorStatus(@RequestParam RegulatorStatus status) {
-        UUID userId = getAppUserId(request);
+        UUID userId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(regulatorService.updateRegulatorStatus(userId, status), HttpStatus.OK);
     }
 
     @GetMapping("/deals")
     public ResponseEntity<?> getDealsForRegulator(Pageable pageable) {
-        UUID userId = getAppUserId(request);
+        UUID userId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(regulatorService.getDealsForRegulator(userId, pageable), HttpStatus.OK);
     }
 
     @GetMapping("/deals/{dealId}")
     public ResponseEntity<RegulatorDealViewDTO> getDealDetail(@PathVariable UUID dealId) {
-        UUID userId = getAppUserId(request);
+        UUID userId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(regulatorService.getDealDetailForRegulator(userId, dealId), HttpStatus.OK);
     }
 
@@ -77,13 +76,13 @@ public class RegulatorController {
     public ResponseEntity<Page<AuditLogDTO>> getAuditLogsForEntity(@PathVariable String entityType,
                                                                    @PathVariable UUID entityId,
                                                                    Pageable pageable) {
-        UUID userId = getAppUserId(request);
+        UUID userId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(regulatorService.getAuditLogsForEntity(userId, entityType, entityId, pageable), HttpStatus.OK);
     }
 
     @GetMapping("/audit-logs")
     public ResponseEntity<?> getAllAuditLogs(Pageable pageable) {
-        UUID userId = getAppUserId(request);
+        UUID userId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(regulatorService.getAllAuditLogs(userId, pageable), HttpStatus.OK);
     }
 
@@ -91,7 +90,7 @@ public class RegulatorController {
     public ResponseEntity<?> searchDeals(@RequestParam(required = false)SMEIndustry sector,
                                                                   @RequestParam(required = false) DealStatus status,
                                                                   Pageable pageable) {
-        UUID userId = getAppUserId(request);
+        UUID userId = getUser.getCurrentAuthenticatedUserId();
         return new ResponseEntity<>(regulatorService.searchDeals(userId, sector, status, pageable), HttpStatus.OK);
     }
 }

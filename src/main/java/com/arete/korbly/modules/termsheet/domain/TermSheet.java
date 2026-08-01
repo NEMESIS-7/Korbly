@@ -30,15 +30,15 @@ public class TermSheet {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID termSheetId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "deal_id")
     private Deal dealId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "tranche_id")
     private Tranche trancheId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "sme_id")
     private SME smeId;
 
@@ -96,11 +96,11 @@ public class TermSheet {
 
     private Timestamp signedAt;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "app_user_id")
     private AppUser createdBy;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "amended_by")
     private AppUser amendedBy;
 
@@ -116,7 +116,7 @@ public class TermSheet {
 
     private Boolean isLatest;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "signing_user")
     private AppUser signedBy;
 

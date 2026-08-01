@@ -17,6 +17,9 @@ public interface SMERepository extends JpaRepository<SME, UUID> {
     @Query("select s from SME s where s.smeId = :smeId")
     Optional<SME> findSMEBySmeId(UUID smeId);
 
+    @Query("select s from SME s where s.appUser.userId = :appUserId")
+    Optional<SME> findByAppUserId(UUID appUserId);
+
     @Query("""
                 select new com.arete.korbly.modules.sme.dto.RevenuePoint(
                     f.periodMonth,

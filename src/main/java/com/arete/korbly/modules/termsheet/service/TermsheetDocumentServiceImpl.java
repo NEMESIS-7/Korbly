@@ -9,6 +9,7 @@ import com.arete.korbly.modules.termsheet.exceptions.TermSheetNotFound;
 import com.arete.korbly.modules.termsheet.persistence.ConditionsPrecedentRepository;
 import com.arete.korbly.modules.termsheet.persistence.TermSheetRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -53,16 +54,13 @@ public class TermsheetDocumentServiceImpl implements ITermSheetDocumentService {
     }
 
     @Override
+    @Transactional
     public String generateAndStore(UUID termSheetId) {
         TermSheet sheet = termSheetRepository.findById(termSheetId)
                 .orElseThrow(() -> new TermSheetNotFound("Term sheet not found"));
         List<ConditionsPrecedent> cps = cpRepository.findBySheetId(termSheetId);
 
         byte[] pdf = generatePDF(sheet, cps);
-        String fileKey = uploadToS3(sheet.getSmeId().getCompanyName(), sheet.getSheetVersion(), pdf);
-
-        termSheetRepository.save(sheet);
-
-        return fileKey;
+        return uploadToS3(sheet.getSmeId().getCompanyName(), sheet.getSheetVersion(), pdf);
     }
 }

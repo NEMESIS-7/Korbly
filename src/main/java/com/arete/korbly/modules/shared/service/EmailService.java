@@ -15,7 +15,6 @@ public class EmailService {
     private JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
 
-//    static Dotenv dotenv = Dotenv.configure().load();
 
     private static final String appEmail = "elikemfenuksu@gmail.com";
 
